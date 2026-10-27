@@ -1,0 +1,287 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}Warqadda Daawada (Rx Slip) - {{ visit.visit_number }} — MediCare HMS{% endblock %}
+
+{% block opd_css %}
+<style>
+    .rx-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    .rx-sheet {
+        background: #ffffff;
+        width: 100%;
+        max-width: 760px;
+        min-height: 980px;
+        padding: 40px 48px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1e293b;
+    }
+    .rx-header {
+        border-bottom: 3px double #1e3a8a;
+        padding-bottom: 18px;
+        margin-bottom: 20px;
+    }
+    .hospital-title {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+    .demographics-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .demographics-table td {
+        padding: 7px 12px;
+        font-size: 13px;
+        border: 1px solid #edf2f7;
+    }
+    .demographics-label {
+        color: #64748b;
+        font-weight: 500;
+        width: 20%;
+    }
+    .demographics-val {
+        color: #0f172a;
+        font-weight: 600;
+        width: 30%;
+    }
+    .rx-symbol {
+        font-size: 38px;
+        font-weight: bold;
+        font-family: 'Times New Roman', serif;
+        color: #1e3a8a;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+    .rx-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+    }
+    .rx-table th {
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 9px 12px;
+        border-top: 1px solid #cbd5e1;
+        border-bottom: 2px solid #94a3b8;
+    }
+    .rx-table td {
+        padding: 10px 12px;
+        font-size: 13.5px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .signature-section {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .signature-line {
+        border-top: 1px dashed #64748b;
+        margin-top: 40px;
+        padding-top: 6px;
+        font-size: 12px;
+        color: #475569;
+    }
+
+    @media print {
+        body { background: white !important; padding: 0 !important; margin: 0 !important; }
+        .sidebar, .topbar, .hms-breadcrumb, .action-bar-top { display: none !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; }
+        .page-content { padding: 0 !important; background: white !important; }
+        .rx-wrapper { padding: 0 !important; }
+        .rx-sheet { box-shadow: none !important; border: none !important; max-width: 100% !important; width: 100% !important; padding: 20px !important; }
+    }
+</style>
+{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_visit_detail' visit.pk %}">{{ visit.visit_number }}</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Warqadda Daawada (Prescription)</span>
+</div>
+
+<!-- Action Bar on Top -->
+<div class="d-flex justify-content-between align-items-center mb-3 action-bar-top">
+    <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Booqashada
+    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'opd_consultation_view' visit.pk %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">edit</span> Wax ka beddel Baaritaanka
+        </a>
+        <button onclick="window.print()" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">print</span> Daabac Warqadda Daawada (Print Rx)
+        </button>
+    </div>
+</div>
+
+<!-- Printable Paper Sheet -->
+<div class="rx-wrapper">
+    <div class="rx-sheet">
+        <!-- Hospital Header -->
+        <div class="rx-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-3 p-2 text-white d-flex align-items-center justify-content-center" style="background: #1e3a8a; width: 48px; height: 48px;">
+                    <span class="material-symbols-outlined fs-2">local_hospital</span>
+                </div>
+                <div>
+                    <div class="hospital-title">HospitalCare Medical Center</div>
+                    <div class="text-secondary fw-semibold small">OUTPATIENT DEPARTMENT (OPD CLINIC)</div>
+                    <div class="text-muted" style="font-size: 11px;">Mogadishu, Somalia • Tel: +252 61 5000000 • Email: opd@hospitalcare.so</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-primary px-3 py-1.5 fs-6 mb-1">PRESCRIPTION (Rx)</div>
+                <div class="text-muted small">Token #{{ visit.token_number }}</div>
+            </div>
+        </div>
+
+        <!-- Demographics Table -->
+        <table class="demographics-table">
+            <tr>
+                <td class="demographics-label">Bukaanka:</td>
+                <td class="demographics-val">{{ visit.patient.name }}</td>
+                <td class="demographics-label">Visit ID:</td>
+                <td class="demographics-val text-primary">{{ visit.visit_number }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Da'da / Jinsiga:</td>
+                <td class="demographics-val">{{ visit.patient.age }} Years / {{ visit.patient.gender }}</td>
+                <td class="demographics-label">Taariikhda:</td>
+                <td class="demographics-val">{{ visit.visit_date|date:"d-M-Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Dhakhtarka:</td>
+                <td class="demographics-val">{{ visit.doctor|default:"Dr. Ahmed Mohamed, MD" }}</td>
+                <td class="demographics-label">Telefoonka:</td>
+                <td class="demographics-val">{{ visit.patient.phone }}</td>
+            </tr>
+            {% if vitals %}
+            <tr>
+                <td class="demographics-label">Vitals:</td>
+                <td colspan="3" class="demographics-val text-secondary small">
+                    <strong>BP:</strong> {{ vitals.blood_pressure|default:"N/A" }} &nbsp;|&nbsp; 
+                    <strong>Temp:</strong> {% if vitals.temperature %}{{ vitals.temperature }}°C{% else %}N/A{% endif %} &nbsp;|&nbsp; 
+                    <strong>Pulse:</strong> {% if vitals.pulse_rate %}{{ vitals.pulse_rate }} bpm{% else %}N/A{% endif %} &nbsp;|&nbsp; 
+                    <strong>Weight:</strong> {% if vitals.weight %}{{ vitals.weight }} kg{% else %}N/A{% endif %} &nbsp;|&nbsp; 
+                    <strong>BMI:</strong> {{ vitals.bmi|default:"N/A" }}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+
+        <!-- Diagnosis Box -->
+        {% if consultation %}
+        <div class="p-2.5 rounded bg-light border mb-4 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted small fw-semibold">Provisional / Clinical Diagnosis:</span>
+                <strong class="text-dark ms-2">{{ consultation.diagnosis }}</strong>
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary small">{{ consultation.outcome }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Rx Symbol & Prescriptions Table -->
+        <div class="rx-symbol">℞</div>
+
+        <table class="rx-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 35%;">Medicine Name (Daawada)</th>
+                    <th style="width: 18%;">Dosage</th>
+                    <th style="width: 20%;">Frequency</th>
+                    <th style="width: 12%;">Duration</th>
+                    <th style="width: 10%;">Instructions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if consultation and consultation.prescriptions.exists %}
+                    {% for item in consultation.prescriptions.all %}
+                    <tr>
+                        <td class="text-muted">{{ forloop.counter }}</td>
+                        <td><strong class="text-primary">{{ item.medicine_name }}</strong></td>
+                        <td>{{ item.dosage }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ item.frequency }}</span></td>
+                        <td>{{ item.duration }}</td>
+                        <td class="text-muted small">{{ item.instructions|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">Wax daawo ah looma qorin booqashadan.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Doctor's Clinical Advice & Notes -->
+        {% if consultation.clinical_notes %}
+        <div class="p-3 rounded bg-light border mb-4">
+            <strong class="text-dark small d-block mb-1">Talada Dhakhtarka & Tilmaamaha:</strong>
+            <p class="text-secondary small mb-0">{{ consultation.clinical_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if consultation.next_follow_up %}
+        <div class="alert alert-warning py-2 px-3 small d-flex align-items-center gap-2 mb-4">
+            <span class="material-symbols-outlined fs-5">event</span>
+            <span><strong>Ballanta Xigta (Follow-up):</strong> Fadlan dib ugu soo noqo isbitaalka taariikhdu marka ay tahay <strong>{{ consultation.next_follow_up|date:"d-M-Y" }}</strong>.</span>
+        </div>
+        {% endif %}
+
+        <!-- Sign-off Section -->
+        <div class="signature-section">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>Pharmacy Dispensing</strong><br>
+                        <span class="text-muted">Pharmacist Sign & Date</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
+                        <div class="rounded p-1 border text-muted" style="font-size: 9px; width: 110px;">
+                            <span class="material-symbols-outlined fs-2 text-primary d-block">verified</span>
+                            OFFICIAL CLINICAL Rx
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>{{ visit.doctor|default:"Dr. Ahmed Mohamed" }}</strong><br>
+                        <span class="text-muted">Physician Signature & Stamp</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-muted mt-4 pt-3 border-top" style="font-size: 10.5px;">
+                *** HospitalCare Medical Center — Outpatient Department (OPD) ***<br>
+                Fadlan daawada u qaado sida dhakhtarku kuu faray. Wixii dareen-celin ah oo degdeg ah la xiriir isbitaalka.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

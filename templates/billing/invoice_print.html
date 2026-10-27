@@ -1,0 +1,309 @@
+﻿{% extends 'billing/base.html' %}
+{% load static %}
+
+{% block title %}Rasiidka Lacag-Bixinta - {{ invoice.invoice_number }} — MediCare HMS{% endblock %}
+
+{% block billing_css %}
+<style>
+    .inv-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    .inv-sheet {
+        background: #ffffff;
+        width: 100%;
+        max-width: 780px;
+        min-height: 1020px;
+        padding: 40px 48px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1e293b;
+    }
+    .inv-header {
+        border-bottom: 3px double #1e3a8a;
+        padding-bottom: 18px;
+        margin-bottom: 22px;
+    }
+    .hospital-title {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+    .demographics-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .demographics-table td {
+        padding: 8px 12px;
+        font-size: 13px;
+        border: 1px solid #edf2f7;
+    }
+    .demographics-label {
+        color: #64748b;
+        font-weight: 500;
+        width: 20%;
+    }
+    .demographics-val {
+        color: #0f172a;
+        font-weight: 600;
+        width: 30%;
+    }
+    .inv-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+    }
+    .inv-table th {
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 9px 12px;
+        border-top: 1px solid #cbd5e1;
+        border-bottom: 2px solid #94a3b8;
+    }
+    .inv-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .signature-section {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .signature-line {
+        border-top: 1px dashed #64748b;
+        margin-top: 40px;
+        padding-top: 6px;
+        font-size: 12px;
+        color: #475569;
+    }
+
+    @media print {
+        body { background: white !important; padding: 0 !important; margin: 0 !important; }
+        .sidebar, .topbar, .hms-breadcrumb, .action-bar-top { display: none !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; }
+        .page-content { padding: 0 !important; background: white !important; }
+        .inv-wrapper { padding: 0 !important; }
+        .inv-sheet { box-shadow: none !important; border: none !important; max-width: 100% !important; width: 100% !important; padding: 20px !important; }
+    }
+</style>
+{% endblock %}
+
+{% block billing_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'billing_dashboard' %}"><span class="material-symbols-outlined fs-6">account_balance_wallet</span> Billing</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'invoice_detail' invoice.pk %}">{{ invoice.invoice_number }}</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Rasiidka Rasmiga ah</span>
+</div>
+
+<!-- Action Bar on Top -->
+<div class="d-flex justify-content-between align-items-center mb-3 action-bar-top">
+    <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Qaansada
+    </a>
+    <button onclick="window.print()" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4" style="background: #1e3a8a; border-color: #1e3a8a;">
+        <span class="material-symbols-outlined fs-5">print</span> Daabac Rasiidka (Print Receipt)
+    </button>
+</div>
+
+<!-- Printable Paper Sheet -->
+<div class="inv-wrapper">
+    <div class="inv-sheet">
+        <!-- Hospital Header -->
+        <div class="inv-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-3 p-2 text-white d-flex align-items-center justify-content-center" style="background: #1e3a8a; width: 48px; height: 48px;">
+                    <span class="material-symbols-outlined fs-2">local_hospital</span>
+                </div>
+                <div>
+                    <div class="hospital-title">HospitalCare Medical Center</div>
+                    <div class="text-secondary fw-semibold small">DEPARTMENT OF FINANCE & BILLING</div>
+                    <div class="text-muted" style="font-size: 11px;">Mogadishu, Somalia • Tel: +252 61 5000000 • Email: billing@hospitalcare.so</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-primary px-3 py-1.5 fs-6 mb-1">
+                    {% if invoice.status == 'Paid' %}OFFICIAL RECEIPT{% else %}TAX INVOICE{% endif %}
+                </div>
+                <div class="text-muted small">Status: <strong>{{ invoice.status }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Demographics Table -->
+        <table class="demographics-table">
+            <tr>
+                <td class="demographics-label">Bukaanka:</td>
+                <td class="demographics-val">{{ invoice.patient.name }}</td>
+                <td class="demographics-label">Invoice Number:</td>
+                <td class="demographics-val text-primary">{{ invoice.invoice_number }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Da'da & Jinsiga:</td>
+                <td class="demographics-val">{{ invoice.patient.age }} Years / {{ invoice.patient.gender }}</td>
+                <td class="demographics-label">Taariikhda Biilka:</td>
+                <td class="demographics-val">{{ invoice.billing_date|date:"d-M-Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Telefoonka:</td>
+                <td class="demographics-val">{{ invoice.patient.phone }}</td>
+                <td class="demographics-label">Dhakhtarka:</td>
+                <td class="demographics-val">{{ invoice.doctor|default:"General Medicine" }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Habka Lacag-Bixinta:</td>
+                <td class="demographics-val">{{ invoice.payment_method }}</td>
+                <td class="demographics-label">Khasnajiga (Cashier):</td>
+                <td class="demographics-val">{{ invoice.created_by|default:"Admin Staff" }}</td>
+            </tr>
+        </table>
+
+        <!-- Line Items Table -->
+        <table class="inv-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 25%;">Service Category</th>
+                    <th style="width: 40%;">Description</th>
+                    <th style="width: 10%;" class="text-center">Qty</th>
+                    <th style="width: 10%;" class="text-end">Rate ($)</th>
+                    <th style="width: 10%;" class="text-end">Total ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td class="text-muted">{{ forloop.counter }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ item.service_type }}</span></td>
+                    <td><strong class="text-dark">{{ item.description }}</strong></td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-end">${{ item.unit_price }}</td>
+                    <td class="text-end fw-bold">${{ item.total_price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3">Wax adeegyo ah kuma jiraan qaansadan.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals & Balance Due Area -->
+        <div class="row justify-content-end mb-4">
+            <div class="col-md-6">
+                <div class="p-3 rounded bg-light border">
+                    <div class="d-flex justify-content-between text-secondary small mb-1.5">
+                        <span>Wadarta Adeegyada (Subtotal):</span>
+                        <strong class="text-dark">${{ invoice.subtotal }}</strong>
+                    </div>
+                    {% if invoice.discount > 0 %}
+                    <div class="d-flex justify-content-between text-success small mb-1.5">
+                        <span>Qiimo Dhimis (Discount):</span>
+                        <strong>-${{ invoice.discount }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if invoice.tax > 0 %}
+                    <div class="d-flex justify-content-between text-secondary small mb-1.5">
+                        <span>Canshuur (Tax):</span>
+                        <strong>+${{ invoice.tax }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between pt-2 border-top mb-1.5">
+                        <span class="fw-bold text-dark fs-6">Wadarta Guud (Total):</span>
+                        <span class="fw-bold text-primary fs-5">${{ invoice.total_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-success mb-1.5">
+                        <span class="fw-semibold small">Lacagta La Bixiyay (Paid):</span>
+                        <span class="fw-bold">${{ invoice.paid_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">Baqiga Hadhay (Balance Due):</span>
+                        {% if invoice.balance_due > 0 %}
+                            <span class="fw-bold text-danger fs-5">${{ invoice.balance_due }}</span>
+                        {% else %}
+                            <span class="fw-bold text-success fs-6">$0.00 (PAID IN FULL)</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Ledger Summary if payments exist -->
+        {% if invoice.payments.exists %}
+        <div class="mb-4">
+            <span class="small fw-bold text-secondary d-block mb-1">Diiwaanka Lacag-Qabashada (Payment Transactions):</span>
+            <table class="table table-sm table-bordered" style="font-size: 11.5px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Taariikhda</th>
+                        <th>Habka</th>
+                        <th>Reference / TXID</th>
+                        <th class="text-end">Cadadka ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pay in invoice.payments.all %}
+                    <tr>
+                        <td>{{ pay.transaction_id }}</td>
+                        <td>{{ pay.payment_date|date:"d-M-Y H:i" }}</td>
+                        <td>{{ pay.payment_method }}</td>
+                        <td>{{ pay.reference_number|default:"N/A" }}</td>
+                        <td class="text-end fw-bold text-success">+${{ pay.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Sign-off Section -->
+        <div class="signature-section">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>{{ invoice.patient.name }}</strong><br>
+                        <span class="text-muted">Patient / Guardian Signature</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
+                        <div class="rounded p-1 border text-muted" style="font-size: 9px; width: 110px;">
+                            <span class="material-symbols-outlined fs-2 text-primary d-block">verified</span>
+                            OFFICIAL HMS RECEIPT
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>{{ invoice.created_by|default:"Hospital Cashier" }}</strong><br>
+                        <span class="text-muted">Cashier / Finance Officer</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-muted mt-4 pt-3 border-top" style="font-size: 10px;">
+                *** HospitalCare Medical Center — Department of Finance ***<br>
+                Mahadsanid. Rasiidkan waxaa soo saaray nidaamka xisaabaadka ee isbitaalka. Waxaa loo isticmaali karaa ujeedooyinka xisaabaadka iyo canshuuraha.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

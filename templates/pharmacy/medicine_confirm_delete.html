@@ -1,0 +1,33 @@
+{% extends 'pharmacy/base.html' %}
+
+{% block title %}Tir Daawada{% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span><span class="material-symbols-outlined" style="font-size: 14px;">home</span> Home</span>
+    <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span>
+    <a href="{% url 'medicine_list' %}" class="text-decoration-none text-secondary">Medicine List</a>
+    <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span>
+    <span class="active">Tir Daawada</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 mt-5">
+        <div class="card border-danger shadow-sm">
+            <div class="card-body text-center p-5">
+                <span class="material-symbols-outlined text-danger mb-3" style="font-size: 64px;">warning</span>
+                <h4 class="fw-bold mb-3">Ma hubtaa in aad tirto?</h4>
+                <p class="text-muted mb-4">
+                    Ma hubtaa in aad tirto daawadan <strong>"{{ medicine.name }}"</strong>? 
+                    Xogtaan dib looma soo celin karo haddii la tiro.
+                </p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <a href="{% url 'medicine_list' %}" class="btn btn-light border px-4 me-2">Maya, Kanoqo</a>
+                    <button type="submit" class="btn btn-danger px-4">Haa, Tir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

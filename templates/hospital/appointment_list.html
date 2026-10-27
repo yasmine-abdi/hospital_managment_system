@@ -1,0 +1,282 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<style>
+    /* Navy & White Theme */
+    .page-content { padding: 30px; }
+    .hms-card {
+        background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); padding: 25px;
+    }
+    .hms-breadcrumb { font-size: 13px; color: #64748b; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;}
+    .hms-breadcrumb span { display: flex; align-items: center; gap: 4px; }
+    .hms-breadcrumb .active { color: #1e3a8a; font-weight: 600; }
+    .input-group-text { border-color: #cbd5e1; background-color: #ffffff; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.15); border-color: #3b82f6; }
+    .btn-navy { background-color: #1e3a8a; border-color: #1e3a8a; color: #ffffff; font-weight: 600; }
+    .btn-navy:hover { background-color: #172554; border-color: #172554; color: #ffffff; }
+    .appt-id-badge {
+        font-family: 'DM Mono', monospace, Consolas, monospace;
+        font-weight: 700;
+        color: #1e3a8a;
+        background: #eff6ff;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid #dbeafe;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span class="material-symbols-outlined fs-6">home</span> Dashboard 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> Appointments 
+    <span class="active"><span class="material-symbols-outlined fs-6">chevron_right</span> Liiska Ballamaha</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-primary d-flex" style="background: #eff6ff; color: #1e3a8a !important;">
+                <span class="material-symbols-outlined fs-2">calendar_month</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Wadarta Ballamaha</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_appointments }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-warning d-flex" style="background: #fffbeb;">
+                <span class="material-symbols-outlined fs-2">pending_actions</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Kuwa La Sugayo (Pending)</div>
+                <div class="fs-4 fw-bold text-dark">{{ pending_appointments }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-info d-flex" style="background: #eff6ff;">
+                <span class="material-symbols-outlined fs-2">task_alt</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">La Ogolaaday (Approved)</div>
+                <div class="fs-4 fw-bold text-dark">{{ approved_appointments }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-success d-flex" style="background: #ecfdf5;">
+                <span class="material-symbols-outlined fs-2">check_circle</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Dhammaystiran</div>
+                <div class="fs-4 fw-bold text-dark">{{ completed_appointments }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="hms-card">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+        <div>
+            <h5 class="mb-1 fw-bold" style="color: #0f172a;">Maamulka Ballamaha</h5>
+            <small class="text-muted">La soco dhammaan ballamaha isbitaalka (Ordered from 0001)</small>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'appointment_create' %}" class="btn btn-navy d-flex align-items-center gap-1 fw-medium">
+                <span class="material-symbols-outlined fs-5">add</span> Qabo Ballan Cusub
+            </a>
+            <button class="btn btn-outline-success d-flex align-items-center gap-1 fw-medium">
+                <span class="material-symbols-outlined fs-5">table_view</span> Export Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Form -->
+    <form method="get" id="appointmentFilterForm" class="row g-3 mb-4 p-3 bg-light rounded-3 align-items-end border">
+        <div class="col-md-5">
+            <label class="form-label text-secondary small fw-semibold">Raadi Bukaanka ama Dhakhtarka</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white text-muted"><span class="material-symbols-outlined fs-5">search</span></span>
+                <input type="text" name="q" id="apptSearchInput" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="Qor magac, xaraf, ID (e.g. 0001)..." autocomplete="off">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-secondary small fw-semibold">Xaaladda Ballanta</label>
+            <select name="status" id="apptStatusSelect" class="form-select">
+                <option value="">Dhammaan Xaaladaha</option>
+                <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending (La sugayo)</option>
+                <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved (La ogolaaday)</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed (Dhammaystiran)</option>
+                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled (La kansalay)</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-navy w-100 d-flex justify-content-center align-items-center gap-1">
+                <span class="material-symbols-outlined fs-5">filter_list</span> Sifee
+            </button>
+            <a href="{% url 'appointment_list' %}" class="btn btn-light border text-secondary p-2 d-flex align-items-center justify-content-center" title="Reset">
+                <span class="material-symbols-outlined fs-5">restart_alt</span>
+            </a>
+        </div>
+    </form>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <span class="material-symbols-outlined fs-5">info</span>
+                {{ message }}
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary" style="font-size: 13px;">
+                <tr>
+                    <th class="py-3 px-3">ID</th>
+                    <th class="py-3">Bukaanka (Patient)</th>
+                    <th class="py-3">Dhakhtarka (Doctor)</th>
+                    <th class="py-3">Taariikhda Ballanta</th>
+                    <th class="py-3">Saacadda</th>
+                    <th class="py-3">Xaaladda</th>
+                    <th class="py-3 text-center px-3">Waxqabad</th>
+                </tr>
+            </thead>
+            <tbody id="apptTableBody" style="font-size: 14px; color: #334155;">
+                {% for appt in appointments %}
+                <tr class="appt-row"
+                    data-id="{{ appt.id }}"
+                    data-id-fmt="{{ appt.id|stringformat:'04d' }}"
+                    data-patient="{{ appt.patient.name|lower }}"
+                    data-doctor="{{ appt.doctor.user.first_name|default:appt.doctor.user.username|lower }}"
+                    data-status="{{ appt.status }}">
+                    <td class="px-3">
+                        <span class="appt-id-badge">{{ appt.id|stringformat:'04d' }}</span>
+                    </td>
+                    <td class="fw-semibold text-dark">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="https://ui-avatars.com/api/?name={{ appt.patient.name|urlencode }}&background=1e3a8a&color=ffffff" class="rounded-circle" width="30" height="30">
+                            {{ appt.patient.name }}
+                        </div>
+                    </td>
+                    <td><span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 fw-medium rounded-1">Dr. {{ appt.doctor.user.first_name|default:appt.doctor.user.username }}</span></td>
+                    <td class="text-muted"><span class="material-symbols-outlined fs-6 align-middle me-1">calendar_today</span>{{ appt.appointment_date|date:"d M Y" }}</td>
+                    <td class="text-muted"><span class="material-symbols-outlined fs-6 align-middle me-1">schedule</span>{{ appt.appointment_date|time:"H:i" }}</td>
+                    <td>
+                        {% if appt.status == 'Completed' %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 fw-medium rounded-1">Dhammaystiran</span>
+                        {% elif appt.status == 'Approved' %}
+                            <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 fw-medium rounded-1">La Ogolaaday</span>
+                        {% elif appt.status == 'Cancelled' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1 fw-medium rounded-1">La Kansalay</span>
+                        {% else %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 fw-medium rounded-1">Wuu Sugayaa</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3">
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'appointment_update' appt.pk %}" class="btn btn-sm btn-light text-success border" title="Beddel"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></a>
+                            <a href="{% url 'appointment_delete' appt.pk %}" class="btn btn-sm btn-light text-danger border" title="Tir"><span class="material-symbols-outlined" style="font-size: 18px;">delete</span></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <span class="material-symbols-outlined text-muted mb-2" style="font-size: 40px; opacity: 0.5;">event_busy</span>
+                        <h6 class="text-muted fw-semibold">Ma jiraan wax ballamo ah oo diiwaangashan.</h6>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="jsNoApptResultsRow" style="display: none;">
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-2 text-muted d-block mb-1">event_busy</span>
+                        Wax ballan ah oo ku habboon shaandhada lama helin.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Showing entries count -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mt-3 pt-3 border-top">
+        <div class="text-muted small">
+            Waxaa muuqda: <strong id="visibleApptBadge">{{ appointments|length }}</strong> ee wadarta <strong>{{ total_appointments }}</strong> ballan
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('apptSearchInput');
+    const statusSelect = document.getElementById('apptStatusSelect');
+    const rows = document.querySelectorAll('.appt-row');
+    const jsNoApptResultsRow = document.getElementById('jsNoApptResultsRow');
+    const visibleApptBadge = document.getElementById('visibleApptBadge');
+
+    function applyApptFilter() {
+        const rawQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const cleanQuery = rawQuery.replace(/^[#a]+/i, '').replace(/^0+/, '');
+        const selectedStatus = (statusSelect ? statusSelect.value : '').trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        rows.forEach(function(row) {
+            const rowId = (row.getAttribute('data-id') || '').trim();
+            const rowIdFmt = (row.getAttribute('data-id-fmt') || '').trim().toLowerCase();
+            const rowPatient = (row.getAttribute('data-patient') || '').trim().toLowerCase();
+            const rowDoctor = (row.getAttribute('data-doctor') || '').trim().toLowerCase();
+            const rowStatus = (row.getAttribute('data-status') || '').trim().toLowerCase();
+
+            let matchQuery = true;
+            if (rawQuery) {
+                const matchId = (rowIdFmt === rawQuery) || (rowIdFmt.includes(rawQuery)) || (rowId === cleanQuery);
+                const matchPatient = rowPatient.includes(rawQuery) || rowPatient.startsWith(rawQuery);
+                const matchDoctor = rowDoctor.includes(rawQuery) || rowDoctor.startsWith(rawQuery);
+                matchQuery = matchId || matchPatient || matchDoctor;
+            }
+
+            let matchStatus = true;
+            if (selectedStatus) {
+                matchStatus = (rowStatus === selectedStatus);
+            }
+
+            if (matchQuery && matchStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (visibleApptBadge) {
+            visibleApptBadge.textContent = visibleCount;
+        }
+
+        if (jsNoApptResultsRow) {
+            jsNoApptResultsRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyApptFilter);
+    if (statusSelect) statusSelect.addEventListener('change', applyApptFilter);
+});
+</script>
+{% endblock %}

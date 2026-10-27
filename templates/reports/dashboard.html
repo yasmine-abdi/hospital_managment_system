@@ -1,0 +1,417 @@
+{% extends 'reports/base.html' %}
+
+{% block report_content %}
+<div class="page-content">
+    <!-- Official Print Header -->
+    <div class="print-official-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-primary" style="font-family: 'Fraunces', serif;">MEDICARE GENERAL HOSPITAL</h3>
+                <div class="small text-muted">Warbixinta Guud ee Waxqabadka Isbitaalka (Executive Hospital Report)</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-dark">{{ period_label }}</div>
+                <div class="small text-muted">Taariikhda Daabacaadda: {% now 'd M Y, H:i' %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <span class="active">Reports & Analytics Hub</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Warbixinaha Guud & Falanqaynta (Reports Hub)</h2>
+            <p class="text-muted small mb-0">Falanqaynta guud ee dakhliga, adeegyada caafimaadka, shaybaarka, farmashiyaha, iyo shaqaalaha.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">print</span> Daabac Warbixinta (Print)
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Pills -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{% url 'reports_hub' %}" class="report-nav-pill active">
+            <span class="material-symbols-outlined fs-5">analytics</span> Warbixinta Guud (Hub)
+        </a>
+        <a href="{% url 'report_financial' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">account_balance_wallet</span> Dhaqaalaha & Xisaabta
+        </a>
+        <a href="{% url 'report_patients' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">personal_injury</span> Bukaannada & OPD
+        </a>
+        <a href="{% url 'report_laboratory' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">biotech</span> Shaybaarka (Lab)
+        </a>
+        <a href="{% url 'report_pharmacy' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">medication</span> Farmashiyaha
+        </a>
+        <a href="{% url 'report_hr' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">badge</span> Shaqaalaha & HR
+        </a>
+    </div>
+
+    <!-- Date Filter Bar -->
+    <div class="date-filter-bar mb-4">
+        <form method="GET" action="{% url 'reports_hub' %}" class="row g-2 align-items-center">
+            <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary fs-5">calendar_today</span>
+                <span class="small fw-bold text-slate-700">Muddada:</span>
+            </div>
+            <div class="col-12 col-md-auto d-flex flex-wrap gap-1">
+                <a href="?period=today" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Maanta</a>
+                <a href="?period=this_week" class="btn btn-sm {% if period == 'this_week' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Toddobaadkan</a>
+                <a href="?period=this_month" class="btn btn-sm {% if period == 'this_month' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Bishan</a>
+                <a href="?period=this_year" class="btn btn-sm {% if period == 'this_year' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Sanadkan</a>
+            </div>
+            <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2 mt-2 mt-md-0">
+                <input type="hidden" name="period" value="custom">
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ka</span>
+                    <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ilaa</span>
+                    <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Codso
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badge Info -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 small fw-semibold">
+            Muddada Xogta: {{ period_label }}
+        </span>
+    </div>
+
+    <!-- Executive KPI Row -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Revenue Billed & Collected -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">receipt_long</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Wadarta La Qaansheeyay</div>
+                    <div class="report-kpi-val text-primary">${{ total_billed|floatformat:2 }}</div>
+                    <div class="small text-success mt-1 fw-semibold">La Qabtay: ${{ total_collected|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Clinical Workload (OPD + IPD) -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">stethoscope</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Bukaannada OPD & Jiifka</div>
+                    <div class="report-kpi-val text-success">{{ opd_visits_count }} <span class="fs-6 fw-normal text-muted">OPD</span></div>
+                    <div class="small text-muted mt-1">{{ admissions_count }} Bukaan jiif ah (Admissions)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Laboratory Diagnostics -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fdf2f8; color: #db2777;">
+                    <span class="material-symbols-outlined fs-2">biotech</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Dalabaadka Shaybaarka</div>
+                    <div class="report-kpi-val text-dark">{{ lab_requests_count }}</div>
+                    <div class="small text-muted mt-1">Dakhliga: <strong>${{ lab_revenue|floatformat:2 }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Pharmacy & HR -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fffbeb; color: #d97706;">
+                    <span class="material-symbols-outlined fs-2">medication</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Iibka Farmashiyaha</div>
+                    <div class="report-kpi-val text-warning">${{ pharmacy_revenue|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">{{ pharmacy_sales_count }} Iib oo la sameeyay</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Analytics Section -->
+    <div class="row g-4 mb-4">
+        <!-- Left: Service Revenue Breakdown -->
+        <div class="col-12 col-lg-6">
+            <div class="hms-card h-100">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-primary">pie_chart</span>
+                            Dakhliga Adeegyada (Revenue by Service)
+                        </h5>
+                        <p class="text-muted small mb-0">Isku-darka dakhliga laga helay adeeg kasta muddada la doortay.</p>
+                    </div>
+                </div>
+
+                <div class="row align-items-center">
+                    <div class="col-12 col-sm-6">
+                        <div style="height: 220px; position: relative;">
+                            <canvas id="serviceRevenueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                            {% for s in service_revenue %}
+                            <li class="d-flex align-items-center justify-content-between p-2 rounded bg-light border">
+                                <span class="fw-semibold text-dark">{{ s.service_type }}</span>
+                                <span class="fw-bold text-primary">${{ s.total|floatformat:2 }}</span>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center py-4">Ma jiraan qaansado la jaray muddadan.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Top Active Doctors -->
+        <div class="col-12 col-lg-6">
+            <div class="hms-card h-100">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-success">medical_services</span>
+                            Dhaqaatiirta Ugu Shaqada Badan (Doctor Workload)
+                        </h5>
+                        <p class="text-muted small mb-0">Tirada bukaannada OPD ee dhakhtar kasta baaray muddadan.</p>
+                    </div>
+                    <a href="{% url 'report_patients' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        Eeg Faahfaahinta &rarr;
+                    </a>
+                </div>
+
+                {% if top_doctors %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Dhakhtarka</th>
+                                <th>Takhasuska</th>
+                                <th class="text-end">Bukaannada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in top_doctors %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">Dr. {{ doc.doctor__user__first_name }} {{ doc.doctor__user__last_name }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">{{ doc.doctor__specialization__name|default:"General Medicine" }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold fs-6">
+                                        {{ doc.count }} bukaan
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <span class="material-symbols-outlined fs-2 text-muted opacity-50">health_and_safety</span>
+                    <p class="small mb-0 mt-1">Ma jiraan baaritaanno dhakhtar oo la diiwaangeliyay muddadan.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Specialized Reports Grid -->
+    <h5 class="fw-bold text-slate-800 mb-3" style="font-family: 'DM Sans', sans-serif;">
+        <span class="material-symbols-outlined align-middle me-1 text-primary">menu_book</span>
+        Warbixinaha Gaarka ah ee Qaybaha (Specialized Department Reports)
+    </h5>
+    <div class="row g-3 mb-4">
+        <!-- 1. Financial Report Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #eff6ff; color: #1e3a8a;">
+                        <span class="material-symbols-outlined fs-2">account_balance_wallet</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Dhaqaalaha & Xisaabta</h5>
+                        <div class="small text-muted">Financial & Revenue Report</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Faahfaahinta qaansadaha, lacagaha la qabtay, qidmooyinka dhimista, canshuuraha, iyo hababka lacag bixinta.
+                </p>
+                <a href="{% url 'report_financial' %}?period={{ period }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-primary w-100 rounded-pill fw-semibold">
+                    Furo Warbixinta Dhaqaalaha &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Patients & Clinical Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #ecfdf5; color: #059669;">
+                        <span class="material-symbols-outlined fs-2">personal_injury</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Bukaannada & OPD/IPD</h5>
+                        <div class="small text-muted">Patients & Clinical Report</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Diiwaangelinta bukaannada, jinsiga, da'da, booqashooyinka OPD, cudurrada la helay, iyo jiifka sariiraha.
+                </p>
+                <a href="{% url 'report_patients' %}?period={{ period }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-success w-100 rounded-pill fw-semibold">
+                    Furo Warbixinta Bukaannada &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Laboratory Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #fdf2f8; color: #db2777;">
+                        <span class="material-symbols-outlined fs-2">biotech</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Shaybaarka (Laboratory)</h5>
+                        <div class="small text-muted">Diagnostic Laboratory Report</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Tirada baaritaannada la sameeyay, natiijooyinka aan caadiga ahayn (abnormal rate), iyo baaritaannada loogu jecelyahay.
+                </p>
+                <a href="{% url 'report_laboratory' %}?period={{ period }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-danger w-100 rounded-pill fw-semibold">
+                    Furo Warbixinta Shaybaarka &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- 4. Pharmacy Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #fffbeb; color: #d97706;">
+                        <span class="material-symbols-outlined fs-2">medication</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Farmashiyaha (Pharmacy)</h5>
+                        <div class="small text-muted">Pharmacy & Inventory Movement</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Dakhliga daawooyinka laga helay, daawooyinka ugu iibka badan, iyo digniinta daawooyinka sii dhamaanaya.
+                </p>
+                <a href="{% url 'report_pharmacy' %}?period={{ period }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-warning text-dark w-100 rounded-pill fw-semibold">
+                    Furo Warbixinta Farmashiyaha &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- 5. HR & Workforce Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #f3e8ff; color: #7e22ce;">
+                        <span class="material-symbols-outlined fs-2">badge</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Shaqaalaha & Xaadirka</h5>
+                        <div class="small text-muted">HR, Attendance & Payroll Report</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Xisaabinta imaanshaha iyo daahitaanka shaqaalaha, fasaxyada la oggolaaday, iyo mushahaaraadka la bixiyay.
+                </p>
+                <a href="{% url 'report_hr' %}?period={{ period }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-purple text-dark w-100 rounded-pill fw-semibold" style="border-color: #7e22ce; color: #7e22ce;">
+                    Furo Warbixinta HR-ka &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- 6. Print Everything Card -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="hms-card h-100 p-4 border-primary border-opacity-25" style="background: #f8faff;">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 rounded-3" style="background: #1e3a8a; color: #ffffff;">
+                        <span class="material-symbols-outlined fs-2">local_printshop</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Daabac Warbixinta Guud</h5>
+                        <div class="small text-muted">Official Hospital Executive Brief</div>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">
+                    Soo saar warbixin rasmi ah oo ku habboon maamulka sare, guddiga isbitaalka, ama daabacaadda PDF.
+                </p>
+                <button onclick="window.print()" class="btn btn-primary w-100 rounded-pill fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                    Daabac Hada (Print / PDF) &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block report_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Service Revenue Donut Chart
+    const ctxService = document.getElementById('serviceRevenueChart');
+    if (ctxService) {
+        const labels = [{% for s in service_revenue %}"{{ s.service_type }}",{% endfor %}];
+        const data = [{% for s in service_revenue %}{{ s.total|stringformat:'.2f' }},{% endfor %}];
+        
+        new Chart(ctxService, {
+            type: 'doughnut',
+            data: {
+                labels: labels.length ? labels : ['No Data'],
+                datasets: [{
+                    data: data.length ? data : [1],
+                    backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                cutout: '68%'
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

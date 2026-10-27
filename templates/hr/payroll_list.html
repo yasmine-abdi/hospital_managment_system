@@ -1,0 +1,288 @@
+{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+                <span>/</span>
+                <span class="active">Mushahaaraadka (Payroll)</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Maamulka Mushahaaraadka (Staff Payroll)</h2>
+            <p class="text-muted small mb-0">Bixinta mushaharka, gunnooyinka, jarista, iyo diyaarinta rasiidhada (Pay Slips).</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#newPayrollModal">
+                <span class="material-symbols-outlined fs-5">payments</span> Bixi Mushahar Cusub
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages / Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Financial KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">account_balance_wallet</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Mushaharka Asaasiga</div>
+                    <div class="hr-kpi-val text-primary">${{ total_gross|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Gross Salary Total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">add_circle</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Gunnada (Allowances)</div>
+                    <div class="hr-kpi-val text-success">+${{ total_allowances|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Overtime & Bonuses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #fef2f2; color: #dc2626;">
+                    <span class="material-symbols-outlined fs-2">remove_circle</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Jarista (Deductions)</div>
+                    <div class="hr-kpi-val text-danger">-${{ total_deductions|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Taxes & Absences</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #f0fdf4; color: #16a34a;">
+                    <span class="material-symbols-outlined fs-2">payments</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Net La Bixiyay</div>
+                    <div class="hr-kpi-val text-success" style="font-size: 24px;">${{ total_net|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Wadarta Net Paid</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Card -->
+    <div class="hms-card mb-4 p-3">
+        <form method="GET" action="{% url 'payroll_list' %}" class="row g-3 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <span class="material-symbols-outlined fs-5">search</span>
+                    </span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="Raadi Voucher #, Shaqaale, Trx ID...">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <input type="text" name="month" value="{{ month_filter }}" class="form-control" placeholder="Bisha (e.g. October 2026)">
+            </div>
+
+            <div class="col-6 col-md-3">
+                <select name="status" class="form-select form-control" onchange="this.form.submit()">
+                    <option value="">Dhammaan Xaaladaha</option>
+                    <option value="Paid" {% if status_filter == 'Paid' %}selected{% endif %}>La Bixiyay (Paid)</option>
+                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Sugaya (Pending)</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 p-2" title="Raadi">
+                    <span class="material-symbols-outlined fs-5">filter_list</span> Shaandhee
+                </button>
+                {% if search_query or month_filter or status_filter %}
+                <a href="{% url 'payroll_list' %}" class="btn btn-outline-secondary p-2" title="Kala saar">
+                    <span class="material-symbols-outlined fs-5">close</span>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Payroll Table Card -->
+    <div class="hms-card">
+        {% if payrolls %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Voucher #</th>
+                        <th>Shaqaalaha</th>
+                        <th>Bisha Mushaharka</th>
+                        <th>Asaasiga</th>
+                        <th>Gunnada</th>
+                        <th>Jarista</th>
+                        <th>Wadarta Net ($)</th>
+                        <th>Habka</th>
+                        <th>Taariikhda</th>
+                        <th>Xaaladda</th>
+                        <th class="text-end">Rasiidka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pay in payrolls %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-primary border font-monospace px-2 py-1">
+                                {{ pay.payroll_number|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="staff-avatar" style="width: 34px; height: 34px; font-size: 12px;">
+                                    {{ pay.staff.user.first_name|first|upper }}{{ pay.staff.user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <a href="{% url 'staff_detail' pay.staff.pk %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                        {{ pay.staff.user.get_full_name }}
+                                    </a>
+                                    <div class="small text-muted">{{ pay.staff.designation }} &bull; {{ pay.staff.department }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark">{{ pay.salary_month }}</span>
+                        </td>
+                        <td>${{ pay.basic_salary|floatformat:2 }}</td>
+                        <td class="text-success">+${{ pay.allowances|floatformat:2 }}</td>
+                        <td class="text-danger">-${{ pay.deductions|floatformat:2 }}</td>
+                        <td>
+                            <span class="fw-bold text-success fs-6">${{ pay.net_salary|floatformat:2 }}</span>
+                        </td>
+                        <td>
+                            <span class="small fw-semibold text-dark">{{ pay.payment_method }}</span>
+                            {% if pay.reference_number %}
+                            <div class="small text-muted font-monospace">{{ pay.reference_number }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="small text-muted">{{ pay.payment_date|date:"d M Y" }}</span>
+                        </td>
+                        <td>
+                            {% if pay.status == 'Paid' %}
+                            <span class="badge-status badge-paid">Paid</span>
+                            {% else %}
+                            <span class="badge-status badge-pending">{{ pay.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'payroll_print' pay.pk %}" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill d-inline-flex align-items-center gap-1">
+                                <span class="material-symbols-outlined fs-6">print</span> Pay Slip
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined fs-1 text-muted opacity-50">payments</span>
+            <h5 class="fw-bold text-muted mt-2">Ma Jiraan Diiwaanno Mushahar</h5>
+            <p class="text-muted small mb-3">Wali ma jiro mushahar lagu bixiyay nidaamka ama baaritaankaaga waxba kuma soo bixin.</p>
+            <button type="button" class="btn btn-success btn-sm px-3 rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#newPayrollModal">
+                Bixi Mushahar Cusub
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: New Payroll Disbursal -->
+<div class="modal fade" id="newPayrollModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'payroll_create' %}" class="modal-content rounded-4 border-0 shadow">
+            {% csrf_token %}
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">payments</span>
+                    Bixinta Mushaharka Shaqaalaha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ payroll_form.staff.label }}</label>
+                    {{ payroll_form.staff }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ payroll_form.salary_month.label }}</label>
+                    {{ payroll_form.salary_month }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ payroll_form.basic_salary.label }}</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-success fw-bold">$</span>
+                        {{ payroll_form.basic_salary }}
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ payroll_form.allowances.label }}</label>
+                        {{ payroll_form.allowances }}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ payroll_form.deductions.label }}</label>
+                        {{ payroll_form.deductions }}
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ payroll_form.payment_method.label }}</label>
+                        {{ payroll_form.payment_method }}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ payroll_form.payment_date.label }}</label>
+                        {{ payroll_form.payment_date }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ payroll_form.reference_number.label }}</label>
+                    {{ payroll_form.reference_number }}
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-semibold">{{ payroll_form.status.label }}</label>
+                    {{ payroll_form.status }}
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                <button type="submit" class="btn btn-success fw-semibold px-4">
+                    Xaqiiji & Bixi Mushaharka
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

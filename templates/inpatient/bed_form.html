@@ -1,0 +1,105 @@
+{% extends 'inpatient/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span class="material-symbols-outlined fs-6">home</span> Dashboard 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> Inpatient (IPD) 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> <a href="{% url 'bed_list' %}" class="text-decoration-none text-secondary">Beds</a>
+    <span class="active"><span class="material-symbols-outlined fs-6">chevron_right</span> {{ title }}</span>
+</div>
+
+<div class="hms-card">
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-primary fs-3" style="color: #0d47a1 !important;">hotel</span>
+        <div>
+            <h5 class="mb-0 fw-bold text-dark">{{ title }}</h5>
+            <small class="text-muted">Fadlan buuxi xogta sariirta cusub ee hoose.</small>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    Fadlan sax khaladaadka hoose.
+                </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-secondary small">{{ form.ward.label }} <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><span class="material-symbols-outlined fs-5">apartment</span></span>
+                            {{ form.ward }}
+                        </div>
+                        {% if form.ward.errors %}<div class="text-danger small mt-1">{{ form.ward.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary small">{{ form.room_number.label }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><span class="material-symbols-outlined fs-5">meeting_room</span></span>
+                            {{ form.room_number }}
+                        </div>
+                        {% if form.room_number.errors %}<div class="text-danger small mt-1">{{ form.room_number.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary small">{{ form.bed_number.label }} <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><span class="material-symbols-outlined fs-5">bed</span></span>
+                            {{ form.bed_number }}
+                        </div>
+                        {% if form.bed_number.errors %}<div class="text-danger small mt-1">{{ form.bed_number.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-12 mt-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_available }}
+                            <label class="form-check-label fw-semibold text-secondary small ms-2" for="{{ form.is_available.id_for_label }}">{{ form.is_available.label }}</label>
+                        </div>
+                        {% if form.is_available.errors %}<div class="text-danger small mt-1">{{ form.is_available.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'bed_list' %}" class="btn btn-light px-4 py-2 text-primary border fw-semibold d-flex align-items-center gap-2" style="color: #0d47a1 !important;">
+                            <span class="material-symbols-outlined fs-5">cancel</span> Iska Jaa
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold d-flex align-items-center gap-2" style="background-color: #0d47a1; border-color: #0d47a1;">
+                            <span class="material-symbols-outlined fs-5">save</span> Kaydi Sariirta
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4 d-none d-md-flex align-items-center justify-content-center bg-light rounded-3 p-4 border text-center">
+            <div style="color: #64b5f6;">
+                <span class="material-symbols-outlined" style="font-size: 140px; font-weight: 200;">hotel</span>
+                <p class="mt-3 fw-semibold text-secondary" style="font-size: 14px;">Hubi in aad doorato qeybta saxda ah isla markaana aad qorto lambarka sariirta si hadhow marka bukaan la seexinayo aad si sahal ah uga doorato liiska.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.classList.add('border-start-0', 'ps-0');
+        });
+        
+        // Form-switch customization
+        const checkbox = document.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+            checkbox.classList.add('form-check-input');
+            checkbox.style.cursor = 'pointer';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,329 @@
+﻿{% extends 'billing/base.html' %}
+{% load static %}
+
+{% block title %}Faahfaahinta Qaansada {{ invoice.invoice_number }} — MediCare HMS{% endblock %}
+
+{% block billing_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'billing_dashboard' %}"><span class="material-symbols-outlined fs-6">account_balance_wallet</span> Billing</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'invoice_list' %}">Qaansadaha</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">{{ invoice.invoice_number }}</span>
+</div>
+
+<!-- Header with Actions -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 text-white" style="background: #1e3a8a;">
+            <span class="material-symbols-outlined fs-2">receipt_long</span>
+        </div>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h3 class="fw-bold text-dark mb-0">{{ invoice.invoice_number }}</h3>
+                {% if invoice.status == 'Paid' %}
+                    <span class="badge-status badge-paid">Waa La Bixiyay (Paid)</span>
+                {% elif invoice.status == 'Partially Paid' %}
+                    <span class="badge-status badge-partial">Qayb Baa La Bixiyay</span>
+                {% elif invoice.status == 'Unpaid' %}
+                    <span class="badge-status badge-unpaid">Lama Bixin (Unpaid)</span>
+                {% else %}
+                    <span class="badge-status badge-cancelled">{{ invoice.status }}</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-0">Taariikhda: {{ invoice.billing_date|date:"M d, Y, h:i A" }} • Bukaanka: <strong class="text-dark">{{ invoice.patient.name }}</strong></p>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        {% if invoice.balance_due > 0 %}
+        <button type="button" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#paymentModal" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">payments</span>
+            Qaabil Lacag-Bixin (Receive Payment)
+        </button>
+        {% endif %}
+        <a href="{% url 'invoice_print' invoice.pk %}" class="btn btn-success d-flex align-items-center gap-1 shadow-sm px-3">
+            <span class="material-symbols-outlined fs-5">print</span>
+            Daabac Rasiidka (Print Receipt)
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Patient & Invoice Details -->
+    <div class="col-lg-4">
+        <!-- Patient Info Card -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary">person</span>
+                Xogta Bukaanka
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Magaca:</span>
+                    <strong class="text-dark">{{ invoice.patient.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Da'da & Jinsiga:</span>
+                    <strong class="text-dark">{{ invoice.patient.age }} jir • {{ invoice.patient.gender }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Telefoonka:</span>
+                    <strong class="text-dark">{{ invoice.patient.phone }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Cinwaanka:</span>
+                    <span class="text-dark">{{ invoice.patient.address|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Details Card -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary">info</span>
+                Xogta Biilka & Lacag-bixinta
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Dhakhtarka:</span>
+                    <strong class="text-dark">{{ invoice.doctor|default:"Dhakhtar Guud" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Habka Lacag-Bixinta:</span>
+                    <span class="badge bg-light text-dark border">{{ invoice.payment_method }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Taariikhda Lacagta:</span>
+                    <span class="text-dark">{{ invoice.due_date|default:"Isla Maanta (Immediate)" }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Khasnajiga / Abuuray:</span>
+                    <span class="text-dark">{{ invoice.created_by|default:"Admin" }}</span>
+                </div>
+                {% if invoice.notes %}
+                <div class="pt-2 border-top">
+                    <span class="text-muted d-block mb-1">Xusuusin:</span>
+                    <span class="text-secondary">{{ invoice.notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Financial Summary Totals Card -->
+        <div class="hms-card" style="background: #f8fafc; border: 2px dashed #cbd5e1;">
+            <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-success">paid</span>
+                Xisaabinta Biilka (Financial Summary)
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between text-secondary">
+                    <span>Wadarta Adeegyada (Subtotal):</span>
+                    <strong class="text-dark">${{ invoice.subtotal }}</strong>
+                </div>
+                {% if invoice.discount > 0 %}
+                <div class="d-flex justify-content-between text-success">
+                    <span>Qiimo Dhimis (Discount):</span>
+                    <strong>-${{ invoice.discount }}</strong>
+                </div>
+                {% endif %}
+                {% if invoice.tax > 0 %}
+                <div class="d-flex justify-content-between text-secondary">
+                    <span>Canshuur (Tax):</span>
+                    <strong>+${{ invoice.tax }}</strong>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between pt-2 border-top">
+                    <span class="fw-bold text-dark fs-6">Wadarta Guud:</span>
+                    <span class="fw-bold text-primary fs-5">${{ invoice.total_amount }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-success">
+                    <span class="fw-semibold">Lacagta La Bixiyay:</span>
+                    <span class="fw-bold fs-6">${{ invoice.paid_amount }}</span>
+                </div>
+                <div class="d-flex justify-content-between pt-2 border-top">
+                    <span class="fw-bold text-dark fs-6">Baqiga Hadhay (Due):</span>
+                    {% if invoice.balance_due > 0 %}
+                        <span class="fw-bold text-danger fs-4">${{ invoice.balance_due }}</span>
+                    {% else %}
+                        <span class="fw-bold text-success fs-5">$0.00 (Cleared)</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Line Items & Payment History -->
+    <div class="col-lg-8">
+        <!-- Hospital Services Line Items -->
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">list_alt</span>
+                        Adeegyada Isbitaalka (Hospital Line Items)
+                    </h5>
+                    <span class="text-muted small">Adeegyada lagu dalacay qaansadan iyo qiimahooda</span>
+                </div>
+                <span class="badge bg-light text-dark border">{{ invoice.items.count }} Adeegyo</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Qaybta Adeegga</th>
+                            <th>Faahfaahinta</th>
+                            <th class="text-center">Tirada</th>
+                            <th class="text-end">Qiimaha ($)</th>
+                            <th class="text-end">Wadarta ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in invoice.items.all %}
+                        <tr>
+                            <td class="text-muted">{{ forloop.counter }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ item.service_type }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-dark">{{ item.description }}</strong>
+                            </td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end">${{ item.unit_price }}</td>
+                            <td class="text-end fw-bold text-primary">${{ item.total_price }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Wax adeegyo ah kuma jiraan qaansadan.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment Transactions History Ledger -->
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">payments</span>
+                        Diiwaanka Lacag-Qabashada (Payment History)
+                    </h5>
+                    <span class="text-muted small">Dhammaan lacagihii lagu qabtay qaansadan</span>
+                </div>
+                {% if invoice.balance_due > 0 %}
+                <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#paymentModal" style="background: #1e3a8a; border-color: #1e3a8a;">
+                    <span class="material-symbols-outlined fs-6">add</span> Qabo Lacag
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Taariikhda</th>
+                            <th>Habka</th>
+                            <th>Nambarka Tixraaca (Ref)</th>
+                            <th>Qabtay</th>
+                            <th class="text-end">Cadadka ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pay in invoice.payments.all %}
+                        <tr>
+                            <td>
+                                <strong class="text-primary">{{ pay.transaction_id }}</strong>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ pay.payment_date|date:"M d, Y h:i A" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ pay.payment_method }}</span>
+                            </td>
+                            <td>
+                                <span class="small text-secondary">{{ pay.reference_number|default:"N/A" }}</span>
+                            </td>
+                            <td>
+                                <span class="small fw-semibold text-dark">{{ pay.received_by|default:"Cashier" }}</span>
+                            </td>
+                            <td class="text-end fw-bold text-success fs-6">
+                                +${{ pay.amount }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <span class="material-symbols-outlined fs-2 text-warning d-block mb-1">pending</span>
+                                Wali wax lacag ah laguma bixin qaansadan.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Receive Payment -->
+{% if invoice.balance_due > 0 %}
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-bottom">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">payments</span>
+                    Qaabil Lacag-Bixin (Receive Payment)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'payment_record' invoice.pk %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 px-3 small d-flex justify-content-between align-items-center mb-3">
+                        <span>Baqiga hadhay ee qaansadan:</span>
+                        <strong class="fs-5 text-danger">${{ invoice.balance_due }}</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Cadadka Lacagta La Qabanayo ($) *</label>
+                        {{ payment_form.amount }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Habka Lacagta Lagu Bixiyay *</label>
+                        {{ payment_form.payment_method }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Nambarka Tixraaca (EVC Plus TXID / Ref)</label>
+                        {{ payment_form.reference_number }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Faahfaahin Dheeraad ah</label>
+                        {{ payment_form.notes }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                    <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm d-flex align-items-center gap-1">
+                        <span class="material-symbols-outlined fs-5">check</span>
+                        Xaqiiji & Qabo Lacagta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+

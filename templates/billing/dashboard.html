@@ -1,0 +1,323 @@
+﻿{% extends 'billing/base.html' %}
+{% load static %}
+
+{% block title %}Billing & Finance Dashboard — MediCare HMS{% endblock %}
+
+{% block billing_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active"><span class="material-symbols-outlined fs-6">account_balance_wallet</span> Qaybta Lacagta & Biilasha (Billing)</span>
+</div>
+
+<!-- Header with Action -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px;">account_balance_wallet</span>
+            Qaybta Lacag-Qabashada & Biilasha (Billing & Invoicing)
+        </h3>
+        <p class="text-muted small mb-0">Maamulka qaansadaha adeegyada isbitaalka, qabashada lacagta (Cash/EVC Plus), iyo xisaabaadka maaliyadda.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'payment_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm px-3">
+            <span class="material-symbols-outlined fs-5">payments</span>
+            Lacag-Bixinnada (Ledger)
+        </a>
+        <a href="{% url 'invoice_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Abuur Qaansad Cusub
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Billed -->
+    <div class="col-md-6 col-xl-3">
+        <div class="fin-kpi-card">
+            <div class="fin-kpi-icon" style="background: #eff6ff; color: #1d4ed8;">
+                <span class="material-symbols-outlined fs-2">receipt_long</span>
+            </div>
+            <div>
+                <div class="fin-kpi-label">Wadarta Biilasha</div>
+                <div class="fin-kpi-val">${{ total_billed|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Collected -->
+    <div class="col-md-6 col-xl-3">
+        <div class="fin-kpi-card">
+            <div class="fin-kpi-icon" style="background: #dcfce7; color: #15803d;">
+                <span class="material-symbols-outlined fs-2">paid</span>
+            </div>
+            <div>
+                <div class="fin-kpi-label">Dakhliga La Qabtay</div>
+                <div class="fin-kpi-val text-success">${{ total_collected|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Outstanding Receivables -->
+    <div class="col-md-6 col-xl-3">
+        <div class="fin-kpi-card">
+            <div class="fin-kpi-icon" style="background: #fee2e2; color: #b91c1c;">
+                <span class="material-symbols-outlined fs-2">pending</span>
+            </div>
+            <div>
+                <div class="fin-kpi-label">Lama Bixin (Baqi)</div>
+                <div class="fin-kpi-val text-danger">${{ total_outstanding|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Collections -->
+    <div class="col-md-6 col-xl-3">
+        <div class="fin-kpi-card">
+            <div class="fin-kpi-icon" style="background: #f3e8ff; color: #7e22ce;">
+                <span class="material-symbols-outlined fs-2">savings</span>
+            </div>
+            <div>
+                <div class="fin-kpi-label">La Qabtay Maanta</div>
+                <div class="fin-kpi-val" style="color: #7e22ce;">${{ today_collections|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Recent Invoices & Service Breakdown -->
+    <div class="col-lg-8">
+        <!-- Recent Invoices -->
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Qaansadihii Ugu Dambeeyey (Recent Invoices)</h5>
+                    <span class="text-muted small">Biilashii ugu dambeeyey ee loo jaray bukaannada isbitaalka</span>
+                </div>
+                <a href="{% url 'invoice_list' %}" class="btn btn-sm btn-light text-primary fw-semibold d-flex align-items-center gap-1">
+                    Dhammaan Eeg <span class="material-symbols-outlined fs-6">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Bukaanka</th>
+                            <th>Taariikhda</th>
+                            <th>Wadarta</th>
+                            <th>La Bixiyay</th>
+                            <th>Baqiga (Due)</th>
+                            <th>Xaaladda</th>
+                            <th class="text-end">Ficilka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in recent_invoices %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'invoice_detail' inv.pk %}" class="fw-bold text-primary">
+                                    {{ inv.invoice_number }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ inv.patient.name }}</div>
+                                <div class="text-muted small">{{ inv.patient.phone }}</div>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ inv.billing_date|date:"M d, Y" }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-dark">${{ inv.total_amount }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-success fw-semibold">${{ inv.paid_amount }}</span>
+                            </td>
+                            <td>
+                                {% if inv.balance_due > 0 %}
+                                    <span class="text-danger fw-bold">${{ inv.balance_due }}</span>
+                                {% else %}
+                                    <span class="text-muted small">$0.00</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if inv.status == 'Paid' %}
+                                    <span class="badge-status badge-paid">Bixiyay</span>
+                                {% elif inv.status == 'Partially Paid' %}
+                                    <span class="badge-status badge-partial">Qayb</span>
+                                {% elif inv.status == 'Unpaid' %}
+                                    <span class="badge-status badge-unpaid">Lama bixin</span>
+                                {% else %}
+                                    <span class="badge-status badge-cancelled">{{ inv.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{% url 'invoice_detail' inv.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin & Lacag Qabasho">
+                                        <span class="material-symbols-outlined fs-6 text-primary">visibility</span>
+                                    </a>
+                                    <a href="{% url 'invoice_print' inv.pk %}" class="btn btn-sm btn-success p-1 px-2" title="Daabac Rasiidka">
+                                        <span class="material-symbols-outlined fs-6">print</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">receipt</span>
+                                Wax qaansado ah lama abuurin wali. Guji "Abuur Qaansad Cusub" si aad u bilowdo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Revenue by Hospital Services -->
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Dakhliga Qaybaha Isbitaalka (Revenue by Department)</h5>
+                    <span class="text-muted small">Dakhliga ka soo xarooday adeeg kasta oo isbitaalku bixiyo</span>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {% for item in service_breakdown %}
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-3 p-2 bg-white text-primary border shadow-sm">
+                                <span class="material-symbols-outlined fs-5">
+                                    {% if item.service_type == 'Pharmacy' %}local_pharmacy
+                                    {% elif item.service_type == 'Laboratory' %}biotech
+                                    {% elif item.service_type == 'Consultation' %}stethoscope
+                                    {% elif item.service_type == 'Inpatient / Bed' %}hotel
+                                    {% elif item.service_type == 'Surgery' %}medical_services
+                                    {% else %}payments{% endif %}
+                                </span>
+                            </div>
+                            <div>
+                                <strong class="text-dark small d-block">{{ item.service_type }}</strong>
+                                <span class="text-muted" style="font-size: 11px;">{{ item.count }} Adeegyo la qabtay</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fs-5 fw-bold text-success">${{ item.total_revenue|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted small py-3">Faahfaahin adeegyo wali lama hayo.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Payments Ledger & Quick Info -->
+    <div class="col-lg-4">
+        <!-- Recent Payments Received -->
+        <div class="hms-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">payments</span>
+                    Lacagihii Ugu Dambeeyey ee La Qabtay
+                </h6>
+                <a href="{% url 'payment_list' %}" class="small text-primary text-decoration-none">Eeg dhamaan</a>
+            </div>
+
+            <div class="d-flex flex-column gap-2.5">
+                {% for pay in recent_payments %}
+                <div class="p-2.5 rounded-3 border bg-light">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <strong class="text-dark small d-block">{{ pay.invoice.patient.name }}</strong>
+                            <span class="text-muted" style="font-size: 11px;">{{ pay.transaction_id }} • {{ pay.payment_method }}</span>
+                        </div>
+                        <span class="fw-bold text-success fs-6">+${{ pay.amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 11px;">
+                        <span>Ref: {{ pay.reference_number|default:"N/A" }}</span>
+                        <span>{{ pay.payment_date|timesince }} ka hor</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-3 text-muted small">Wali ma jiraan lacago la qabtay.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Accepted Payment Methods Info -->
+        <div class="hms-card mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0a192f 100%); color: white;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-warning fs-3">credit_score</span>
+                <h6 class="fw-bold mb-0 text-white">Hababka Lacag-Bixinta</h6>
+            </div>
+            <div class="d-flex flex-column gap-2.5 small text-white-50">
+                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white-10" style="background: rgba(255,255,255,0.08);">
+                    <span class="text-white d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6 text-warning">smartphone</span>
+                        EVC Plus / Zaad / Sahal
+                    </span>
+                    <span class="badge bg-success">Firfircoon</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white-10" style="background: rgba(255,255,255,0.08);">
+                    <span class="text-white d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6 text-warning">payments</span>
+                        Kaash (Cash in Hand)
+                    </span>
+                    <span class="badge bg-success">Firfircoon</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white-10" style="background: rgba(255,255,255,0.08);">
+                    <span class="text-white d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6 text-warning">credit_card</span>
+                        Mastercard / Visa Card
+                    </span>
+                    <span class="badge bg-success">Firfircoon</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white-10" style="background: rgba(255,255,255,0.08);">
+                    <span class="text-white d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6 text-warning">health_and_safety</span>
+                        Caymiska Caafimaadka (Insurance)
+                    </span>
+                    <span class="badge bg-info">La Heli Karo</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fast Links -->
+        <div class="hms-card">
+            <h6 class="fw-bold text-dark mb-3">Xiriiriyeyaal Fudud</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'invoice_create' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_circle</span>
+                        <span class="small fw-semibold text-dark">Abuur Qaansad Cusub</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'invoice_list' %}?status=Unpaid" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-danger">pending_actions</span>
+                        <span class="small fw-semibold text-dark">Qaansadaha Aan Wali La Bixin</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'payment_list' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">receipt</span>
+                        <span class="small fw-semibold text-dark">Diiwaanka Lacag-Qabashada</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

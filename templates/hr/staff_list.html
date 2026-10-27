@@ -1,0 +1,192 @@
+﻿{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+                <span>/</span>
+                <span class="active">Shaqaalaha (Staff Directory)</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Diiwaanka Shaqaalaha (Staff Directory)</h2>
+            <p class="text-muted small mb-0">Dhammaan xubnaha shaqaalaha isbitaalka, xogtooda xirfadeed iyo xaaladaha shaqada.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3">
+                <span class="material-symbols-outlined fs-5">fact_check</span> Xaadirka Maanta
+            </a>
+            <a href="{% url 'staff_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                <span class="material-symbols-outlined fs-5">person_add</span> Diiwaangeli Shaqaale Cusub
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter & Search Card -->
+    <div class="hms-card mb-4 p-3">
+        <form method="GET" action="{% url 'staff_list' %}" class="row g-3 align-items-center">
+            <!-- Search Input -->
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <span class="material-symbols-outlined fs-5">search</span>
+                    </span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="Raadi Magac, ID, Telefoon, Xil...">
+                </div>
+            </div>
+
+            <!-- Department Filter -->
+            <div class="col-6 col-md-3">
+                <select name="department" class="form-select form-control" onchange="this.form.submit()">
+                    <option value="">Dhammaan Qeybaha (All Departments)</option>
+                    {% for val, label in departments %}
+                    <option value="{{ val }}" {% if selected_dept == val %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Shift Filter -->
+            <div class="col-6 col-md-2">
+                <select name="shift" class="form-select form-control" onchange="this.form.submit()">
+                    <option value="">Dhammaan Waqtiyada (Shifts)</option>
+                    {% for val, label in shifts %}
+                    <option value="{{ val }}" {% if selected_shift == val %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-6 col-md-2">
+                <select name="status" class="form-select form-control" onchange="this.form.submit()">
+                    <option value="">Xaaladaha (Statuses)</option>
+                    {% for val, label in statuses %}
+                    <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-6 col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary w-100 p-2" title="Raadi">
+                    <span class="material-symbols-outlined fs-5">filter_list</span>
+                </button>
+                {% if search_query or selected_dept or selected_shift or selected_status %}
+                <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary p-2" title="Kala saar shaandhada">
+                    <span class="material-symbols-outlined fs-5">close</span>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Staff Table Card -->
+    <div class="hms-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="text-muted small fw-semibold">Waxaa la helay: <strong>{{ total_count }}</strong> shaqaale ah</span>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small">
+                    Firfircoon: {{ staff_list.count }}
+                </span>
+            </div>
+        </div>
+
+        {% if staff_list %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Shaqaalaha (Employee)</th>
+                        <th>ID-ga</th>
+                        <th>Qaybta & Xilka</th>
+                        <th>Waqtiga (Shift)</th>
+                        <th>Telefoonka</th>
+                        <th>Mushaharka</th>
+                        <th>Xaaladda</th>
+                        <th class="text-end">Ficillada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_list %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="staff-avatar">
+                                    {{ staff.user.first_name|first|upper }}{{ staff.user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <a href="{% url 'staff_detail' staff.pk %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                        {{ staff.user.get_full_name }}
+                                    </a>
+                                    <div class="small text-muted">@{{ staff.user.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-primary border font-monospace px-2 py-1">
+                                {{ staff.employee_id|default:"N/A" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ staff.designation }}</div>
+                            <div class="small text-muted">{{ staff.department }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-secondary border px-2 py-1">
+                                {{ staff.shift }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">{{ staff.phone|default:"-" }}</div>
+                            {% if staff.email %}
+                            <div class="small text-muted">{{ staff.email }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="fw-bold text-success">${{ staff.salary|floatformat:2 }}</span>
+                            <span class="text-muted small">/bi</span>
+                        </td>
+                        <td>
+                            {% if staff.status == 'Active' %}
+                            <span class="badge-status badge-active">Active</span>
+                            {% elif staff.status == 'On Leave' %}
+                            <span class="badge-status badge-leave">On Leave</span>
+                            {% elif staff.status == 'Suspended' %}
+                            <span class="badge-status badge-suspended">Suspended</span>
+                            {% else %}
+                            <span class="badge-status badge-resigned">{{ staff.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'staff_detail' staff.pk %}" class="btn btn-outline-primary" title="Faahfaahin Buuxda">
+                                    <span class="material-symbols-outlined fs-6">visibility</span>
+                                </a>
+                                <a href="{% url 'staff_update' staff.pk %}" class="btn btn-outline-secondary" title="Wax ka bedel">
+                                    <span class="material-symbols-outlined fs-6">edit</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined fs-1 text-muted opacity-50">person_off</span>
+            <h5 class="fw-bold text-muted mt-2">Shaqaale Lama Helin</h5>
+            <p class="text-muted small mb-3">Ma jiraan shaqaale ku habboon baaritaankaaga ama wali shaqaale lama gelin.</p>
+            <a href="{% url 'staff_create' %}" class="btn btn-primary btn-sm px-3 rounded-pill">
+                Diiwaangeli Shaqaale Cusub
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

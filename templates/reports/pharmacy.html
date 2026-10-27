@@ -1,0 +1,268 @@
+{% extends 'reports/base.html' %}
+
+{% block report_content %}
+<div class="page-content">
+    <!-- Official Print Header -->
+    <div class="print-official-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-primary" style="font-family: 'Fraunces', serif;">MEDICARE GENERAL HOSPITAL</h3>
+                <div class="small text-muted">Qaybta Farmashiyaha & Daawooyinka (Pharmacy & Medication Services)</div>
+                <div class="fw-bold text-dark fs-5 mt-1">WARBIXINTA IIBKA FARMASHIYAHA (PHARMACY SALES REPORT)</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-dark">{{ period_label }}</div>
+                <div class="small text-muted">Taariikhda: {% now 'd M Y, H:i' %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'reports_hub' %}">Reports Hub</a>
+                <span>/</span>
+                <span class="active">Farmashiyaha (Pharmacy)</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Warbixinta Farmashiyaha & Daawooyinka</h2>
+            <p class="text-muted small mb-0">Dakhliga iibka daawooyinka, daawooyinka ugu badan ee la qoray, iyo digniinta haraaga kaydka.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">print</span> Daabac Warbixinta (Print / PDF)
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Pills -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{% url 'reports_hub' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">analytics</span> Warbixinta Guud (Hub)
+        </a>
+        <a href="{% url 'report_financial' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">account_balance_wallet</span> Dhaqaalaha & Xisaabta
+        </a>
+        <a href="{% url 'report_patients' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">personal_injury</span> Bukaannada & OPD
+        </a>
+        <a href="{% url 'report_laboratory' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">biotech</span> Shaybaarka (Lab)
+        </a>
+        <a href="{% url 'report_pharmacy' %}" class="report-nav-pill active">
+            <span class="material-symbols-outlined fs-5">medication</span> Farmashiyaha
+        </a>
+        <a href="{% url 'report_hr' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">badge</span> Shaqaalaha & HR
+        </a>
+    </div>
+
+    <!-- Date Filter Bar -->
+    <div class="date-filter-bar mb-4">
+        <form method="GET" action="{% url 'report_pharmacy' %}" class="row g-2 align-items-center">
+            <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary fs-5">calendar_today</span>
+                <span class="small fw-bold text-slate-700">Muddada:</span>
+            </div>
+            <div class="col-12 col-md-auto d-flex flex-wrap gap-1">
+                <a href="?period=today" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Maanta</a>
+                <a href="?period=this_week" class="btn btn-sm {% if period == 'this_week' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Toddobaadkan</a>
+                <a href="?period=this_month" class="btn btn-sm {% if period == 'this_month' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Bishan</a>
+                <a href="?period=this_year" class="btn btn-sm {% if period == 'this_year' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Sanadkan</a>
+            </div>
+            <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2 mt-2 mt-md-0">
+                <input type="hidden" name="period" value="custom">
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ka</span>
+                    <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ilaa</span>
+                    <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Codso
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badge Info -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 small fw-semibold">
+            Muddada: {{ period_label }}
+        </span>
+    </div>
+
+    <!-- Pharmacy KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">point_of_sale</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Iibka Guud (Sales)</div>
+                    <div class="report-kpi-val text-primary">{{ total_sales }}</div>
+                    <div class="small text-muted mt-1">Tirada qoraallada daawada la bixiyay</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">payments</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Dakhliga Farmashiyaha</div>
+                    <div class="report-kpi-val text-success">${{ total_revenue|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Celcelis ahaan: ${{ avg_sale_val|floatformat:2 }} / iib</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fdf2f8; color: #db2777;">
+                    <span class="material-symbols-outlined fs-2">pill</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Xabbadaha La Bixiyay (Units)</div>
+                    <div class="report-kpi-val text-dark">{{ total_units_sold }}</div>
+                    <div class="small text-muted mt-1">Xabo / Baakado daawooyin ah</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fffbeb; color: #d97706;">
+                    <span class="material-symbols-outlined fs-2">production_quantity_limits</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Digniinta Kaydka (Low Stock)</div>
+                    <div class="report-kpi-val text-warning">{{ low_stock_medicines.count }}</div>
+                    <div class="small text-danger mt-1 fw-bold">Daawooyin u baahan dalab degdeg ah</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Selling Medicines Table -->
+    <div class="hms-card mb-4">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-slate-800 mb-1">
+                    <span class="material-symbols-outlined align-middle me-1 text-success">trending_up</span>
+                    Daawooyinka Ugu Badan ee La Iibiyay (Top Selling Medicines)
+                </h5>
+                <p class="text-muted small mb-0">Daawooyinka bukaannada ugu badan qaateen iyo dakhliga ka soo xarooday.</p>
+            </div>
+        </div>
+
+        {% if top_medicines %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Magaca Daawada (Medicine)</th>
+                        <th>Batch #</th>
+                        <th>Qiimaha Xabbadda</th>
+                        <th class="text-center">Tirada La Bixiyay (Units)</th>
+                        <th class="text-end">Dakhliga Ka Soo Baxay ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in top_medicines %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ m.medicine__name }}</td>
+                        <td><span class="badge bg-light text-secondary border font-monospace">{{ m.medicine__batch_number|default:"-" }}</span></td>
+                        <td>${{ m.medicine__unit_price|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border px-3 py-1 fs-6 fw-bold">
+                                {{ m.total_qty }} units
+                            </span>
+                        </td>
+                        <td class="text-end fw-bold text-success">${{ m.total_rev|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">Ma jiraan iib daawooyin ah oo la helay muddadan.</p>
+        {% endif %}
+    </div>
+
+    <!-- Low Stock Alert Table -->
+    {% if low_stock_medicines %}
+    <div class="hms-card mb-4 border-warning border-opacity-25">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-warning mb-1">
+                    <span class="material-symbols-outlined align-middle me-1">warning</span>
+                    Daawooyinka Sii Dhamaanaya ee Kaydka (Low Stock Inventory Alert)
+                </h5>
+                <p class="text-muted small mb-0">Daawooyinka haraagoodu ka yar yahay 20 xabbo, oo u baahan in dib loo soo iibiyo.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Daawada</th>
+                        <th>Batch #</th>
+                        <th>Qiimaha</th>
+                        <th class="text-center">Haraaga Hadda Yaala</th>
+                        <th>Xaaladda</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in low_stock_medicines %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ med.name }}</td>
+                        <td><span class="font-monospace small">{{ med.batch_number|default:"-" }}</span></td>
+                        <td>${{ med.unit_price|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold fs-6">
+                                {{ med.stock_quantity }} xabo
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 small fw-semibold">
+                                Sii Dhamaanaya
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Print Signatures Section -->
+    <div class="d-none d-print-block mt-5 pt-4">
+        <div class="d-flex justify-content-between text-center">
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Madaxa Farmashiyaha (Chief Pharmacist)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Kormeeraha Bakhaarka (Store In-Charge)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Agaasimaha Maaliyadda (Finance Director)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

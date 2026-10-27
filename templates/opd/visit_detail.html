@@ -1,0 +1,345 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}Faahfaahinta Booqashada {{ visit.visit_number }} — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_visit_list' %}">Booqashooyinka</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">{{ visit.visit_number }}</span>
+</div>
+
+<!-- Header with Action Buttons -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 text-white" style="background: #1e3a8a;">
+            <span class="material-symbols-outlined fs-2">stethoscope</span>
+        </div>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="token-badge fs-6 px-3 py-1">Token #{{ visit.token_number }}</span>
+                <h3 class="fw-bold text-dark mb-0">{{ visit.patient.name }}</h3>
+                <span class="badge bg-light text-dark border">{{ visit.visit_number }}</span>
+            </div>
+            <p class="text-muted small mb-0">Imaatinka: {{ visit.visit_date|date:"M d, Y, h:i A" }} • Qaybta: {{ visit.department }}</p>
+        </div>
+    </div>
+    
+    <div class="d-flex flex-wrap gap-2">
+        {% if not vitals %}
+        <a href="{% url 'opd_vitals_record' visit.pk %}" class="btn btn-info text-white d-flex align-items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined fs-5">vital_signs</span> Cabbir Vitals-ka
+        </a>
+        {% else %}
+        <a href="{% url 'opd_vitals_record' visit.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">edit</span> Wax ka beddel Vitals
+        </a>
+        {% endif %}
+
+        {% if not consultation %}
+        <a href="{% url 'opd_consultation_view' visit.pk %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">stethoscope</span> Qolka Dhakhtarka
+        </a>
+        {% else %}
+        <a href="{% url 'opd_consultation_view' visit.pk %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">edit_note</span> Wax ka beddel Baaritaanka
+        </a>
+        <a href="{% url 'opd_prescription_print' visit.pk %}" class="btn btn-success d-flex align-items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined fs-5">receipt_long</span> Daabac Warqadda Daawada (Rx)
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Workflow Stepper -->
+<div class="hms-card mb-4 p-4">
+    <div class="row g-3 text-center">
+        <!-- Step 1 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: #15803d;">
+                    <span class="material-symbols-outlined fs-5">check</span>
+                </div>
+                <div class="fw-bold text-dark small">1. Diiwaangelinta (Token)</div>
+                <div class="text-muted" style="font-size: 11px;">Token #{{ visit.token_number }}</div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if vitals %}#15803d{% else %}#cbd5e1{% endif %};">
+                    {% if vitals %}<span class="material-symbols-outlined fs-5">check</span>{% else %}<span class="material-symbols-outlined fs-5">vital_signs</span>{% endif %}
+                </div>
+                <div class="fw-bold {% if vitals %}text-dark{% else %}text-muted{% endif %} small">2. Triage & Vitals</div>
+                <div class="text-muted" style="font-size: 11px;">{% if vitals %}{{ vitals.recorded_at|date:"H:i A" }}{% else %}Sugaya{% endif %}</div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if consultation %}#15803d{% elif vitals %}#7e22ce{% else %}#cbd5e1{% endif %};">
+                    {% if consultation %}<span class="material-symbols-outlined fs-5">check</span>{% else %}<span class="material-symbols-outlined fs-5">stethoscope</span>{% endif %}
+                </div>
+                <div class="fw-bold {% if consultation %}text-dark{% else %}text-muted{% endif %} small">3. Baaritaanka Dhakhtarka</div>
+                <div class="text-muted" style="font-size: 11px;">{% if consultation %}{{ consultation.diagnosis }}{% else %}Aan dhamaan{% endif %}</div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if visit.status == 'Completed' %}#15803d{% else %}#cbd5e1{% endif %};">
+                    {% if visit.status == 'Completed' %}<span class="material-symbols-outlined fs-5">task_alt</span>{% else %}<span class="material-symbols-outlined fs-5">prescriptions</span>{% endif %}
+                </div>
+                <div class="fw-bold {% if visit.status == 'Completed' %}text-dark{% else %}text-muted{% endif %} small">4. Daawada & Fasaxa</div>
+                <div class="text-muted" style="font-size: 11px;">{% if visit.status == 'Completed' %}Waa dhamaaday{% else %}Sugaya{% endif %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Patient & Visit Info -->
+    <div class="col-lg-4">
+        <!-- Patient Card -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary">person</span>
+                Xogta Bukaanka
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Magaca:</span>
+                    <strong class="text-dark">{{ visit.patient.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Da'da & Jinsiga:</span>
+                    <strong class="text-dark">{{ visit.patient.age }} jir • {{ visit.patient.gender }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Telefoonka:</span>
+                    <strong class="text-dark">{{ visit.patient.phone }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Cinwaanka:</span>
+                    <span class="text-dark">{{ visit.patient.address|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visit Info -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary">info</span>
+                Xogta Booqashada
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Dhakhtarka:</span>
+                    <strong class="text-dark">{{ visit.doctor|default:"Dhakhtar Guud" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Qaybta:</span>
+                    <span class="text-dark">{{ visit.department }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Nooca Booqashada:</span>
+                    <span class="badge bg-light text-dark border">{{ visit.visit_type }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Xaaladda:</span>
+                    <strong class="text-dark">{{ visit.status }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Lacag Bixinta:</span>
+                    {% if visit.payment_status == 'Paid' %}
+                        <span class="badge bg-success-subtle text-success">Bixiyay</span>
+                    {% else %}
+                        <span class="badge bg-warning-subtle text-warning">{{ visit.payment_status }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between pt-2 border-top">
+                    <span class="fw-bold text-dark">Qidmada:</span>
+                    <span class="fw-bold text-primary fs-5">${{ visit.consultation_fee }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Vitals & Consultation Details -->
+    <div class="col-lg-8">
+        <!-- Vitals Card -->
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-danger">vital_signs</span>
+                        Calaamadaha Nolosha (Vital Signs)
+                    </h5>
+                    <span class="text-muted small">Cabbiraadda kalkaalisada triage-ka</span>
+                </div>
+                {% if not vitals %}
+                <a href="{% url 'opd_vitals_record' visit.pk %}" class="btn btn-sm btn-info text-white">
+                    <span class="material-symbols-outlined fs-6">add</span> Cabbir Hadda
+                </a>
+                {% endif %}
+            </div>
+
+            {% if vitals %}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">Dhiigkarka (BP)</div>
+                        <div class="fs-4 fw-bold text-danger">{{ vitals.blood_pressure|default:"-" }}</div>
+                        <span class="text-muted" style="font-size: 11px;">mmHg</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">Heerkulka (Temp)</div>
+                        <div class="fs-4 fw-bold text-warning">{% if vitals.temperature %}{{ vitals.temperature }} °C{% else %}-{% endif %}</div>
+                        <span class="text-muted" style="font-size: 11px;">Axillary/Oral</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">Garaaca Wadnaha (Pulse)</div>
+                        <div class="fs-4 fw-bold text-dark">{% if vitals.pulse_rate %}{{ vitals.pulse_rate }}{% else %}-{% endif %}</div>
+                        <span class="text-muted" style="font-size: 11px;">bpm</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">Ogsajiinta (SpO2)</div>
+                        <div class="fs-4 fw-bold text-info">{% if vitals.oxygen_saturation %}{{ vitals.oxygen_saturation }}%{% else %}-{% endif %}</div>
+                        <span class="text-muted" style="font-size: 11px;">Oxygen Level</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">Miisaanka / Dhererka</div>
+                        <div class="fs-5 fw-bold text-dark">{% if vitals.weight %}{{ vitals.weight }}kg{% else %}-{% endif %} / {% if vitals.height %}{{ vitals.height }}cm{% else %}-{% endif %}</div>
+                        <span class="text-muted" style="font-size: 11px;">Weight / Height</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3 bg-light border text-center">
+                        <div class="text-muted small">BMI (Body Mass Index)</div>
+                        <div class="fs-4 fw-bold text-primary">{{ vitals.bmi|default:"-" }}</div>
+                        <span class="text-muted" style="font-size: 11px;">kg/m²</span>
+                    </div>
+                </div>
+                {% if vitals.triage_notes %}
+                <div class="col-12">
+                    <div class="p-2.5 rounded bg-light border small">
+                        <strong>Faallada Kalkaalisada:</strong> {{ vitals.triage_notes }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <span class="material-symbols-outlined fs-2 text-warning d-block mb-1">warning</span>
+                Calaamadaha nolosha (Vitals) wali lama qaadin bukaankan.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Consultation & Prescriptions -->
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">clinical_notes</span>
+                        Baaritaanka & Daawooyinka (Consultation & Rx)
+                    </h5>
+                    <span class="text-muted small">Xogta baaritaanka dhakhtarka iyo warqadda daawada</span>
+                </div>
+                {% if consultation %}
+                <a href="{% url 'opd_prescription_print' visit.pk %}" class="btn btn-sm btn-success d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">print</span> Daabac Rx
+                </a>
+                {% endif %}
+            </div>
+
+            {% if consultation %}
+            <div class="mb-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="text-muted small fw-semibold">Cabashada Ugu Weyn (Chief Complaint):</label>
+                        <div class="p-2.5 rounded bg-light border text-dark fw-medium">{{ consultation.chief_complaint }}</div>
+                    </div>
+                    {% if consultation.history_of_illness %}
+                    <div class="col-12">
+                        <label class="text-muted small fw-semibold">Taariikhda Xanuunka (HPI):</label>
+                        <div class="p-2.5 rounded bg-light border text-dark small">{{ consultation.history_of_illness }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold">Cudurka Laga Helay (Diagnosis):</label>
+                        <div class="p-2.5 rounded bg-primary-subtle text-primary fw-bold">{{ consultation.diagnosis }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold">Go'aanka (Outcome):</label>
+                        <div class="p-2.5 rounded bg-light border text-dark fw-semibold">{{ consultation.outcome }}</div>
+                    </div>
+                    {% if consultation.clinical_notes %}
+                    <div class="col-12">
+                        <label class="text-muted small fw-semibold">Talada Dhakhtarka:</label>
+                        <div class="p-2.5 rounded bg-light border text-muted small">{{ consultation.clinical_notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Prescriptions Table -->
+            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+                <span class="material-symbols-outlined text-success fs-5">prescriptions</span>
+                Daawooyinka Loo Qoray (Prescriptions)
+            </h6>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th>Daawada</th>
+                            <th>Qiyaasta</th>
+                            <th>Inta Jeer</th>
+                            <th>Muddada</th>
+                            <th>Tilmaamaha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rx in consultation.prescriptions.all %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ rx.medicine_name }}</td>
+                            <td>{{ rx.dosage }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ rx.frequency }}</span></td>
+                            <td>{{ rx.duration }}</td>
+                            <td class="text-muted small">{{ rx.instructions|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted small text-center py-2">Daawooyin lama qorin.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <span class="material-symbols-outlined fs-2 text-primary d-block mb-1">stethoscope</span>
+                Dhakhtarku wali ma baarin bukaankan. Guji badhanka sare si aad u bilowdo baaritaanka.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

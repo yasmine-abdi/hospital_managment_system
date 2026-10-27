@@ -1,0 +1,166 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Geli Natiijooyinka Baaritaanka {{ lab_req.order_number }} — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_request_list' %}">Baaritaannada</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Geli Natiijooyinka</span>
+</div>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary">edit_note</span>
+            Geli Natiijooyinka Baaritaanka (Lab Result Entry)
+        </h3>
+        <p class="text-muted small mb-0">
+            Bukaanka: <strong class="text-dark">{{ lab_req.patient.name }}</strong> ({{ lab_req.patient.age }} jir • {{ lab_req.patient.gender }}) | 
+            Order ID: <strong class="text-primary">{{ lab_req.order_number }}</strong>
+        </p>
+    </div>
+    <a href="{% url 'lab_request_detail' lab_req.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">close</span> Ka Noqo
+    </a>
+</div>
+
+<form method="post" id="resultEntryForm">
+    {% csrf_token %}
+
+    <div class="row g-4">
+        <div class="col-lg-12">
+            {% for item in lab_req.items.all %}
+            <div class="hms-card mb-4">
+                <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary fs-3">biotech</span>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">{{ item.test.name }}</h5>
+                            <span class="badge bg-light text-secondary border small">{{ item.test.code }}</span>
+                            <span class="badge bg-primary-subtle text-primary border small ms-1">{{ item.test.sample_type }}</span>
+                        </div>
+                    </div>
+                    <span class="text-muted small">TAT: {{ item.test.turnaround_time }}</span>
+                </div>
+
+                <!-- Parameters Table -->
+                {% if item.test.parameters.all %}
+                <div class="table-responsive mb-3">
+                    <table class="table-custom align-middle">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="width: 25%;">Qiyaasta (Parameter)</th>
+                                <th style="width: 22%;">Natiijada (Result Value) *</th>
+                                <th style="width: 15%;">Halbeegga (Unit)</th>
+                                <th style="width: 20%;">Heerka Caadiga ah (Reference)</th>
+                                <th style="width: 18%;">Heerka (Flag)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for param in item.test.parameters.all %}
+                            <tr>
+                                <td>
+                                    <strong class="text-dark">{{ param.name }}</strong>
+                                </td>
+                                <td>
+                                    <input type="text" name="param_{{ param.id }}" class="form-control form-control-sm result-input" placeholder="Geli qiimaha..." required>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ param.unit|default:"-" }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small">{{ param.reference_range|default:"Normal" }}</span>
+                                </td>
+                                <td>
+                                    <select name="flag_{{ param.id }}" class="form-select form-select-sm flag-select">
+                                        <option value="Normal" selected>Normal</option>
+                                        <option value="High">High (Sareeyo)</option>
+                                        <option value="Low">Low (Hooseeyo)</option>
+                                        <option value="Abnormal">Abnormal</option>
+                                        <option value="Positive">Positive (+)</option>
+                                        <option value="Negative">Negative (-)</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <!-- Direct Test Value -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Natiijada Baaritaanka (Result Value) *</label>
+                        <input type="text" name="direct_val_{{ item.test.id }}" class="form-control" placeholder="Geli natiijada baaritaanka..." required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Heerka / Calaamadda (Flag)</label>
+                        <select name="direct_flag_{{ item.test.id }}" class="form-select">
+                            <option value="Normal" selected>Normal (Caadi)</option>
+                            <option value="High">High (Sareeyo)</option>
+                            <option value="Low">Low (Hooseeyo)</option>
+                            <option value="Abnormal">Abnormal</option>
+                            <option value="Positive">Positive (+)</option>
+                            <option value="Negative">Negative (-)</option>
+                        </select>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Interpretation / Remarks -->
+                <div>
+                    <label class="form-label small fw-semibold text-secondary">Faallada Farsamayaqaanka / Clinical Remarks (Optional)</label>
+                    <textarea name="interpretation_{{ item.test.id }}" rows="2" class="form-control" placeholder="Geli wixii faallo ah oo ku saabsan natiijadan..."></textarea>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Bottom Submission Bar -->
+            <div class="hms-card d-flex justify-content-between align-items-center">
+                <a href="{% url 'lab_request_detail' lab_req.pk %}" class="btn btn-outline-secondary">Ka Noqo</a>
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                    <span class="material-symbols-outlined fs-5">save</span>
+                    Xaqiiji & Keydi Natiijada (Save & Complete)
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block lab_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const flagSelects = document.querySelectorAll(".flag-select");
+    flagSelects.forEach(sel => {
+        sel.addEventListener("change", function() {
+            if (this.value === "High" || this.value === "Positive") {
+                this.style.color = "#b91c1c";
+                this.style.fontWeight = "bold";
+                this.style.background = "#fee2e2";
+            } else if (this.value === "Low") {
+                this.style.color = "#c2410c";
+                this.style.fontWeight = "bold";
+                this.style.background = "#ffedd5";
+            } else if (this.value === "Abnormal") {
+                this.style.color = "#7e22ce";
+                this.style.fontWeight = "bold";
+                this.style.background = "#f3e8ff";
+            } else {
+                this.style.color = "#15803d";
+                this.style.fontWeight = "normal";
+                this.style.background = "#ffffff";
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

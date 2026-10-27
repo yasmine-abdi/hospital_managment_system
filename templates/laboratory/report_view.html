@@ -1,0 +1,331 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Warbixinta Baaritaanka - {{ lab_req.order_number }} — MediCare HMS{% endblock %}
+
+{% block lab_css %}
+<style>
+    /* Screen Display Container */
+    .report-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    .report-sheet {
+        background: #ffffff;
+        width: 100%;
+        max-width: 820px;
+        min-height: 1050px;
+        padding: 40px 48px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1e293b;
+    }
+
+    /* Hospital Letterhead Header */
+    .lab-letterhead {
+        border-bottom: 3px double #1e3a8a;
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+    }
+    .hospital-title {
+        font-family: 'Fraunces', serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #1e3a8a;
+        line-height: 1.2;
+    }
+
+    /* Demographics Box */
+    .demographics-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .demographics-table td {
+        padding: 8px 14px;
+        font-size: 13px;
+        border: 1px solid #edf2f7;
+    }
+    .demographics-label {
+        color: #64748b;
+        font-weight: 500;
+        width: 20%;
+    }
+    .demographics-val {
+        color: #0f172a;
+        font-weight: 600;
+        width: 30%;
+    }
+
+    /* Report Section Table */
+    .report-test-section {
+        margin-bottom: 26px;
+    }
+    .section-header-banner {
+        background: #eff6ff;
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 8px 14px;
+        border-left: 4px solid #1e3a8a;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+    }
+    .report-table th {
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 9px 12px;
+        border-top: 1px solid #cbd5e1;
+        border-bottom: 2px solid #94a3b8;
+    }
+    .report-table td {
+        padding: 8px 12px;
+        font-size: 13px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* Sign-off Block */
+    .signature-section {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .signature-line {
+        border-top: 1px dashed #64748b;
+        margin-top: 40px;
+        padding-top: 6px;
+        font-size: 12px;
+        color: #475569;
+    }
+
+    /* Media Print Styling */
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .sidebar, .topbar, .hms-breadcrumb, .action-bar-top {
+            display: none !important;
+        }
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+        .page-content {
+            padding: 0 !important;
+            background: white !important;
+        }
+        .report-wrapper {
+            padding: 0 !important;
+        }
+        .report-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 20px !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_result_list' %}">Natiijooyinka</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Warbixinta Baaritaanka</span>
+</div>
+
+<!-- Action Bar on Top -->
+<div class="d-flex justify-content-between align-items-center mb-3 action-bar-top">
+    <a href="{% url 'lab_request_detail' lab_req.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Dalabka
+    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab_result_entry' lab_req.pk %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">edit</span> Wax ka beddel Natiijada
+        </a>
+        <button onclick="window.print()" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">print</span> Daabac Warbixinta (Print)
+        </button>
+    </div>
+</div>
+
+<!-- Printable Paper Sheet -->
+<div class="report-wrapper">
+    <div class="report-sheet">
+        <!-- Hospital Letterhead -->
+        <div class="lab-letterhead d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-3 p-2.5 text-white d-flex align-items-center justify-content-center" style="background: #1e3a8a; width: 50px; height: 50px;">
+                    <span class="material-symbols-outlined fs-1">local_hospital</span>
+                </div>
+                <div>
+                    <div class="hospital-title">HospitalCare Medical Center</div>
+                    <div class="text-secondary fw-semibold small" style="letter-spacing: 0.5px;">DEPARTMENT OF LABORATORY MEDICINE & PATHOLOGY</div>
+                    <div class="text-muted" style="font-size: 11px;">Mogadishu, Somalia • Tel: +252 61 5000000 • Email: lab@hospitalcare.so</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-primary px-3 py-1.5 fs-6 mb-1">FINAL LAB REPORT</div>
+                <div class="text-muted small">ISO 15189 Certified</div>
+            </div>
+        </div>
+
+        <!-- Demographics Box -->
+        <table class="demographics-table">
+            <tr>
+                <td class="demographics-label">Magaca Bukaanka:</td>
+                <td class="demographics-val">{{ lab_req.patient.name }}</td>
+                <td class="demographics-label">Order Number:</td>
+                <td class="demographics-val text-primary">{{ lab_req.order_number }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Da'da / Jinsiga:</td>
+                <td class="demographics-val">{{ lab_req.patient.age }} Years / {{ lab_req.patient.gender }}</td>
+                <td class="demographics-label">Taariikhda Dalabka:</td>
+                <td class="demographics-val">{{ lab_req.created_at|date:"d-M-Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Dhakhtarka Dalbay:</td>
+                <td class="demographics-val">{{ lab_req.doctor|default:"OPD / Self Referral" }}</td>
+                <td class="demographics-label">Waqtiga Natiijada:</td>
+                <td class="demographics-val">{{ lab_req.completed_at|date:"d-M-Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td class="demographics-label">Telefoonka:</td>
+                <td class="demographics-val">{{ lab_req.patient.phone }}</td>
+                <td class="demographics-label">Heerka Degdegga:</td>
+                <td class="demographics-val">
+                    {% if lab_req.priority == 'STAT' %}
+                        <span class="text-danger fw-bold">STAT / Urgent</span>
+                    {% else %}
+                        <span>{{ lab_req.priority }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
+        <!-- Results Sections -->
+        {% for res in lab_req.results.all %}
+        <div class="report-test-section">
+            <div class="section-header-banner d-flex justify-content-between align-items-center">
+                <span>{{ res.test.name }} ({{ res.test.code }})</span>
+                <span class="small fw-normal text-muted" style="text-transform: none;">Sample: {{ res.test.sample_type }}</span>
+            </div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 32%;">Test Parameter</th>
+                        <th style="width: 20%;">Result</th>
+                        <th style="width: 15%;">Unit</th>
+                        <th style="width: 21%;">Reference Interval</th>
+                        <th style="width: 12%;">Flag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in res.values.all %}
+                    <tr>
+                        <td class="fw-semibold text-dark">{{ v.parameter_name }}</td>
+                        <td class="fw-bold {% if v.flag in 'High,Low,Abnormal,Positive' %}text-danger{% else %}text-dark{% endif %}">
+                            {{ v.result_value }}
+                        </td>
+                        <td class="text-secondary">{{ v.unit|default:"-" }}</td>
+                        <td class="text-muted" style="font-size: 12px;">{{ v.reference_range|default:"Normal" }}</td>
+                        <td>
+                            {% if v.flag == 'Normal' %}
+                                <span class="flag-normal">Normal</span>
+                            {% elif v.flag == 'High' %}
+                                <span class="flag-high">High ↑</span>
+                            {% elif v.flag == 'Low' %}
+                                <span class="flag-low">Low ↓</span>
+                            {% elif v.flag == 'Positive' %}
+                                <span class="flag-positive">Positive (+)</span>
+                            {% elif v.flag == 'Negative' %}
+                                <span class="flag-negative">Negative (-)</span>
+                            {% else %}
+                                <span class="flag-abnormal">{{ v.flag }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted small py-2">Faahfaahinta qiyaasaha lama gelin.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if res.overall_interpretation %}
+            <div class="p-2.5 rounded bg-light border small mb-3">
+                <strong class="text-dark">Faallo / Clinical Interpretation:</strong>
+                <span class="text-secondary">{{ res.overall_interpretation }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">pending</span>
+            Natiijooyinka wali lama gelin baaritaankan.
+        </div>
+        {% endfor %}
+
+        <!-- Disclaimer & Signature Section -->
+        <div class="signature-section">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>{{ lab_req.technician|default:"Ahmed Mohamed" }}</strong><br>
+                        <span class="text-muted">Medical Lab Technologist</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
+                        <div class="rounded p-1 border text-muted" style="font-size: 9px; width: 110px;">
+                            <span class="material-symbols-outlined fs-2 text-primary d-block">qr_code_2</span>
+                            VERIFIED DIGITAL REPORT
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="signature-line">
+                        <strong>Dr. H. Abdullahi, MD</strong><br>
+                        <span class="text-muted">Consultant Pathologist</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-muted mt-4 pt-3 border-top" style="font-size: 10.5px;">
+                *** Dhammaadka Warbixinta Shaybaarka (End of Laboratory Report) — HospitalCare LIS ***<br>
+                Warbixintan waxaa soo saaray nidaamka kumbuyuutarka ee isbitaalka. Waxaa loo isticmaali karaa ujeedooyinka caafimaadka ee rasmiga ah.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

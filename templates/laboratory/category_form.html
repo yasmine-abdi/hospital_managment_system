@@ -1,0 +1,57 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_test_catalog' %}">Liiska Baaritaannada</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">{{ title }}</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">{{ title }}</h5>
+                    <span class="text-muted small">Qayb cusub ku dar qaybaha shaybaarka</span>
+                </div>
+                <a href="{% url 'lab_test_catalog' %}" class="btn btn-sm btn-outline-secondary">Ka Noqo</a>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Magaca Qaybta (Category Name) *</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Astaanta Icon-ka (Material Symbol)</label>
+                        {{ form.icon }}
+                        <span class="text-muted" style="font-size: 11px;">Tusaale: biotech, bloodtype, science, coronavirus, water_drop</span>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Faahfaahin (Description)</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'lab_test_catalog' %}" class="btn btn-outline-secondary">Ka Noqo</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        Abuur Qaybta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,328 @@
+﻿{% extends 'hr/base.html' %}
+{% load static %}
+
+{% block title %}Rasiidka Mushaharka - {{ payroll.payroll_number }} — MediCare HMS{% endblock %}
+
+{% block hr_css %}
+<style>
+    .pay-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    .pay-sheet {
+        background: #ffffff;
+        width: 100%;
+        max-width: 780px;
+        min-height: 980px;
+        padding: 40px 48px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1e293b;
+    }
+    .pay-header {
+        border-bottom: 3px double #1e3a8a;
+        padding-bottom: 18px;
+        margin-bottom: 22px;
+    }
+    .hospital-title {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+    .demographics-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .demographics-table td {
+        padding: 8px 12px;
+        font-size: 13px;
+        border: 1px solid #edf2f7;
+    }
+    .demographics-label {
+        color: #64748b;
+        font-weight: 500;
+        width: 20%;
+    }
+    .demographics-val {
+        color: #0f172a;
+        font-weight: 600;
+        width: 30%;
+    }
+
+    .salary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+    }
+    .salary-table th {
+        background: #f1f5f9;
+        color: #1e3a8a;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+    }
+    .salary-table td {
+        padding: 10px 12px;
+        font-size: 13.5px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .net-box {
+        background: #f0fdf4;
+        border: 2px dashed #16a34a;
+        border-radius: 8px;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .signatures-row {
+        margin-top: 50px;
+        padding-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .sig-box {
+        text-align: center;
+        width: 200px;
+    }
+    .sig-line {
+        border-top: 1px solid #94a3b8;
+        margin-top: 50px;
+        padding-top: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+    }
+
+    /* Print Controls */
+    .print-controls {
+        max-width: 780px;
+        margin: 0 auto 16px auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    @media print {
+        body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .sidebar, .topbar, .print-controls, .hms-breadcrumb, header {
+            display: none !important;
+        }
+        .main-content, .page-content {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+        }
+        .pay-wrapper {
+            padding: 0 !important;
+        }
+        .pay-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            max-width: 100% !important;
+            padding: 20px !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb (hidden when printed) -->
+    <div class="hms-breadcrumb mb-3">
+        <a href="{% url 'dashboard' %}">
+            <span class="material-symbols-outlined fs-6">home</span> Dashboard
+        </a>
+        <span>/</span>
+        <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+        <span>/</span>
+        <a href="{% url 'payroll_list' %}">Mushahaaraadka</a>
+        <span>/</span>
+        <span class="active">Pay Slip: {{ payroll.payroll_number }}</span>
+    </div>
+
+    <!-- Print Top Controls -->
+    <div class="print-controls">
+        <a href="{% url 'payroll_list' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3">
+            <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary d-inline-flex align-items-center gap-1 rounded-3 px-4 fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                <span class="material-symbols-outlined fs-5">print</span> Daabac Rasiidka (Print Pay Slip)
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Pay Slip Sheet -->
+    <div class="pay-wrapper">
+        <div class="pay-sheet">
+            <!-- Header -->
+            <div class="pay-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-primary fs-2">local_hospital</span>
+                            <span class="hospital-title">MEDICARE GENERAL HOSPITAL</span>
+                        </div>
+                        <div class="small text-muted">Ex-Digfeer Road, Hodan District, Mogadishu, Somalia</div>
+                        <div class="small text-muted">Tel: +252 61 500 0000 | Email: hr@medicarehospital.so</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-primary fs-6 px-3 py-2 mb-1">PAY SLIP / SALARY VOUCHER</div>
+                        <div class="fw-bold font-monospace text-dark fs-5">{{ payroll.payroll_number }}</div>
+                        <div class="small text-muted">Taariikhda: {{ payroll.payment_date|date:"d M Y" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Demographics -->
+            <table class="demographics-table">
+                <tr>
+                    <td class="demographics-label">Magaca Shaqaalaha:</td>
+                    <td class="demographics-val">{{ payroll.staff.user.get_full_name }}</td>
+                    <td class="demographics-label">Employee ID:</td>
+                    <td class="demographics-val font-monospace">{{ payroll.staff.employee_id|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td class="demographics-label">Qaybta (Department):</td>
+                    <td class="demographics-val">{{ payroll.staff.department }}</td>
+                    <td class="demographics-label">Darajada (Designation):</td>
+                    <td class="demographics-val">{{ payroll.staff.designation }}</td>
+                </tr>
+                <tr>
+                    <td class="demographics-label">Bisha Mushaharka:</td>
+                    <td class="demographics-val text-primary fw-bold">{{ payroll.salary_month }}</td>
+                    <td class="demographics-label">Waqtiga (Shift):</td>
+                    <td class="demographics-val">{{ payroll.staff.shift }}</td>
+                </tr>
+                <tr>
+                    <td class="demographics-label">Habka Lacag Bixinta:</td>
+                    <td class="demographics-val">{{ payroll.payment_method }}</td>
+                    <td class="demographics-label">Tixraaca (TXID / Ref):</td>
+                    <td class="demographics-val font-monospace">{{ payroll.reference_number|default:"-" }}</td>
+                </tr>
+            </table>
+
+            <!-- Salary Breakdown (Earnings vs Deductions) -->
+            <div class="row g-3 mb-4">
+                <!-- Earnings Column -->
+                <div class="col-6">
+                    <table class="salary-table">
+                        <thead>
+                            <tr>
+                                <th>Dakhliga (Earnings)</th>
+                                <th class="text-end">Cadadka ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mushaharka Asaasiga ah (Basic Salary)</td>
+                                <td class="text-end fw-semibold">${{ payroll.basic_salary|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Gunnada & Overtime (Allowances)</td>
+                                <td class="text-end text-success fw-semibold">+${{ payroll.allowances|floatformat:2 }}</td>
+                            </tr>
+                            <tr style="background: #f8fafc; font-weight: bold;">
+                                <td>Wadarta Dakhliga (Gross Earnings)</td>
+                                <td class="text-end text-primary">${{ payroll.basic_salary|add:payroll.allowances|floatformat:2 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Deductions Column -->
+                <div class="col-6">
+                    <table class="salary-table">
+                        <thead>
+                            <tr>
+                                <th>Jarista (Deductions)</th>
+                                <th class="text-end">Cadadka ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Canshuurta & Maqnaanshaha (Deductions)</td>
+                                <td class="text-end text-danger fw-semibold">-${{ payroll.deductions|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Jarid Kale (Other)</td>
+                                <td class="text-end text-muted">$0.00</td>
+                            </tr>
+                            <tr style="background: #f8fafc; font-weight: bold;">
+                                <td>Wadarta Jarista (Total Deductions)</td>
+                                <td class="text-end text-danger">-${{ payroll.deductions|floatformat:2 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Net Payable Box -->
+            <div class="net-box">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase d-block">Wadarta Guud ee La Bixiyay (Net Payable Salary)</span>
+                    <span class="fw-bold fs-2 text-success">${{ payroll.net_salary|floatformat:2 }}</span>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success fs-6 px-3 py-2">Xaaladda: {{ payroll.status|upper }}</span>
+                    <div class="small text-muted mt-1">Bixiyay: {% if payroll.created_by %}{{ payroll.created_by.get_full_name|default:payroll.created_by.username }}{% else %}HR Department{% endif %}</div>
+                </div>
+            </div>
+
+            {% if payroll.notes %}
+            <div class="p-3 bg-light rounded border mb-4 small">
+                <strong>Faallada / Notes:</strong> {{ payroll.notes }}
+            </div>
+            {% endif %}
+
+            <!-- Signatures Section -->
+            <div class="signatures-row">
+                <div class="sig-box">
+                    <div class="sig-line">
+                        Shaqaalaha (Employee Signature)<br>
+                        <span class="small text-muted">{{ payroll.staff.user.get_full_name }}</span>
+                    </div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line">
+                        Sarkaalka HR-ka (HR Officer)<br>
+                        <span class="small text-muted">MediCare HR Department</span>
+                    </div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line">
+                        Xisaabiyaha (Finance Officer)<br>
+                        <span class="small text-muted">Hospital Accounts Dept</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Watermark / Footer note -->
+            <div class="text-center text-muted small mt-5 pt-4 border-top">
+                Warqaddan waa caddeyn rasmi ah oo muujinaysa bixinta mushaharka shaqaalaha. Wax shaabad ah uma baahna haddii laga soo saaray nidaamka kumbuyuutarka ee MediCare HMS.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

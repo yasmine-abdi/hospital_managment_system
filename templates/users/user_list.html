@@ -1,0 +1,427 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Maamulka Users & Roles — HospitalCare{% endblock %}
+
+{% block users_content %}
+<div class="row g-3 mb-4">
+    <!-- Stat 1: Total Users -->
+    <div class="col-md-3 col-sm-6">
+        <div class="users-card" style="border-left: 4px solid #1e3a8a;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Wadarta Users</span>
+                    <h3 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin: 4px 0 0 0;">{{ total_users }}</h3>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 8px;">Dhammaan shaqaalaha nidaamka</div>
+        </div>
+    </div>
+
+    <!-- Stat 2: Active Users -->
+    <div class="col-md-3 col-sm-6">
+        <div class="users-card" style="border-left: 4px solid #15803d;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Shaqeynaya (Active)</span>
+                    <h3 style="font-size: 28px; font-weight: 700; color: #15803d; margin: 4px 0 0 0;">{{ active_count }}</h3>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">verified_user</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #15803d; margin-top: 8px;">Furan oo gali kara nidaamka</div>
+        </div>
+    </div>
+
+    <!-- Stat 3: Inactive Users -->
+    <div class="col-md-3 col-sm-6">
+        <div class="users-card" style="border-left: 4px solid #dc2626;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Xiran (Inactive)</span>
+                    <h3 style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 4px 0 0 0;">{{ inactive_count }}</h3>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">person_off</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 8px;">Laga xiray galitaanka</div>
+        </div>
+    </div>
+
+    <!-- Stat 4: Roles Count -->
+    <div class="col-md-3 col-sm-6">
+        <div class="users-card" style="border-left: 4px solid #7e22ce;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Doorka Nidaamka</span>
+                    <h3 style="font-size: 28px; font-weight: 700; color: #7e22ce; margin: 4px 0 0 0;">7 Roles</h3>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">admin_panel_settings</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #7e22ce; margin-top: 8px;">Admin, Doc, Nurse, Pharm, etc.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="users-card">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h4 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Liiska Users-ka & Awoodaha (Role Permissions)</h4>
+            <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">Maamul xisaabaadka nidaamka, doorarka, iyo awoodaha qof kasta u xiran.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#roleMatrixModal" style="border-radius: 8px; font-size: 13.5px; font-weight: 500;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">security</span>
+                Jadwalka Awoodaha (Role Matrix)
+            </button>
+            <a href="{% url 'user_create' %}" class="btn d-flex align-items-center gap-2" style="background: #1e3a8a; color: #ffffff; border-radius: 8px; font-size: 13.5px; font-weight: 600; padding: 8px 18px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+                Ku dar User Cusub
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <form method="get" action="{% url 'user_list' %}" id="userFilterForm" class="row g-2 mb-4 p-3 align-items-center" style="background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #64748b;">search</span>
+                </span>
+                <input type="text" id="filterSearch" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Ku raadi magac, username, ama email..." style="font-size: 13.5px;" autocomplete="off">
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6">
+            <select id="filterRole" name="role" class="form-select" style="font-size: 13.5px; font-weight: 500;">
+                <option value="">Dhammaan Doorka (All Roles)</option>
+                {% for r_code, r_name in roles %}
+                <option value="{{ r_code }}" {% if selected_role|lower == r_code|lower %}selected{% endif %}>{{ r_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6">
+            <select id="filterStatus" name="status" class="form-select" style="font-size: 13.5px; font-weight: 500;">
+                <option value="">Dhammaan Xaaladaha (All Status)</option>
+                <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Shaqeynaya (Active)</option>
+                <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Xiran (Inactive)</option>
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-2 col-sm-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill d-flex align-items-center justify-content-center gap-1" style="background: #1e3a8a; border-color: #1e3a8a; font-size: 13px; font-weight: 600; white-space: nowrap;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">filter_alt</span> Raadi
+            </button>
+            <a href="{% url 'user_list' %}" id="resetFilterBtn" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Nadiifi Shaandheynta (Reset Filters)" style="padding: 6px 10px; {% if not query and not selected_role and not selected_status %}display: none;{% endif %}">
+                <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+            </a>
+        </div>
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mt-2 pt-2 border-top" style="border-color: #e2e8f0 !important; font-size: 12.5px; color: #64748b;">
+            <div>
+                <span class="material-symbols-outlined align-middle" style="font-size: 15px; color: #1e3a8a;">bolt</span>
+                Dooro <strong>Doorka</strong> ama <strong>Xaaladda</strong> — liiska hoose markiiba si toos ah ayuu u kala baxayaa.
+            </div>
+            <div id="filterCountBadge" class="badge bg-light text-primary border" style="font-size: 12px; font-weight: 600; padding: 5px 10px; color: #1e3a8a !important; border-color: #e2e8f0 !important;">
+                Muujinaya: {{ users|length }} user
+            </div>
+        </div>
+    </form>
+
+    <!-- Users Table -->
+    <div class="table-responsive">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>User / Shaqaale</th>
+                    <th>Email</th>
+                    <th>Doorka Nidaamka (Role)</th>
+                    <th>Awooda Qaybaha (Access Scope)</th>
+                    <th>Xaaladda</th>
+                    <th>Taariikhda Ku Biirista</th>
+                    <th style="text-align: right;">Ficilada (Actions)</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                {% for u in users %}
+                <tr class="user-row" 
+                    data-role="{{ u.role|default:'' }}" 
+                    data-status="{% if u.is_active %}active{% else %}inactive{% endif %}" 
+                    data-search="{{ u.username|lower }} {{ u.first_name|lower }} {{ u.last_name|lower }} {{ u.email|lower }} {{ u.role|lower }}">
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="user-avatar-circle" style="background: {% if u.role == 'Admin' %}#dc2626{% elif u.role == 'Doctor' %}#4f46e5{% elif u.role == 'Nurse' %}#15803d{% elif u.role == 'Pharmacist' %}#d97706{% elif u.role == 'Lab Technician' %}#0284c7{% elif u.role == 'Accountant' %}#0d9488{% elif u.role == 'Receptionist' %}#9333ea{% else %}#64748b{% endif %};">
+                                {{ u.username|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #1e293b;">
+                                    {% if u.first_name or u.last_name %}{{ u.first_name }} {{ u.last_name }}{% else %}{{ u.username }}{% endif %}
+                                    {% if u.is_superuser %}
+                                    <span title="Superuser (Master Admin)" style="color: #f59e0b; margin-left: 4px;">★</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 12px; color: #64748b;">@{{ u.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="color: #475569; font-size: 13px;">{{ u.email|default:"—" }}</span>
+                    </td>
+                    <td>
+                        <span class="role-badge {% if u.role == 'Admin' %}role-admin{% elif u.role == 'Doctor' %}role-doctor{% elif u.role == 'Nurse' %}role-nurse{% elif u.role == 'Pharmacist' %}role-pharmacist{% elif u.role == 'Lab Technician' %}role-lab{% elif u.role == 'Receptionist' %}role-receptionist{% elif u.role == 'Accountant' %}role-accountant{% else %}role-default{% endif %}">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">
+                                {% if u.role == 'Admin' %}shield{% elif u.role == 'Doctor' %}stethoscope{% elif u.role == 'Nurse' %}medical_services{% elif u.role == 'Pharmacist' %}medication{% elif u.role == 'Lab Technician' %}biotechnology{% elif u.role == 'Receptionist' %}desk{% elif u.role == 'Accountant' %}payments{% else %}person{% endif %}
+                            </span>
+                            {{ u.role|default:"User" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size: 12px; color: #475569;">
+                            {% if u.is_superuser or u.role == 'Admin' %}
+                                <strong style="color: #dc2626;">Full System (Kulligood)</strong>
+                            {% elif u.role == 'Doctor' %}
+                                OPD, Bukaanada, Ballamaha, Shaybaarka, Daawooyinka
+                            {% elif u.role == 'Nurse' %}
+                                Bukaan-jiif (IPD), Sariiraha, Triage & Vital Signs
+                            {% elif u.role == 'Pharmacist' %}
+                                Farmashiyaha, Daawooyinka, Iibka
+                            {% elif u.role == 'Lab Technician' %}
+                                Shaybaarka, Baaritaannada, Natiijooyinka
+                            {% elif u.role == 'Receptionist' %}
+                                Diiwaangelinta, Ballamaha, Safka OPD, Qaansadaha
+                            {% elif u.role == 'Accountant' %}
+                                Xisaabaadka, Qaansadaha, Lacagaha, Warbixinada Maaliyadda
+                            {% else %}
+                                Isticmaale caadi ah
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="status-badge status-active">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">check</span> Active
+                        </span>
+                        {% else %}
+                        <span class="status-badge status-inactive">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">block</span> Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-size: 12.5px; color: #64748b;">{{ u.date_joined|date:"M d, Y" }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div class="d-inline-flex gap-1">
+                            <a href="{% url 'user_update' u.pk %}" class="btn btn-sm btn-outline-secondary" title="Wax ka bedel" style="padding: 4px 8px; border-radius: 6px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                            </a>
+                            <a href="{% url 'user_reset_password' u.pk %}" class="btn btn-sm btn-outline-secondary" title="Bedel Furaha Sirta" style="padding: 4px 8px; border-radius: 6px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">key</span>
+                            </a>
+                            {% if u.pk != request.user.pk %}
+                            <a href="{% url 'user_toggle_status' u.pk %}" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" title="{% if u.is_active %}Xir Akoonka{% else %}Fur Akoonka{% endif %}" style="padding: 4px 8px; border-radius: 6px;" onclick="return confirm('Ma hubtaa inaad {% if u.is_active %}xirto{% else %}furto{% endif %} akoonka @{{ u.username }}?');">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">{% if u.is_active %}toggle_on{% else %}toggle_off{% endif %}</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: #94a3b8; display: block; margin-bottom: 8px;">search_off</span>
+                        Lama helin wax user ah oo buuxiyay shuruudahaaga raadinta.
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="noResultsRow" style="display: none;">
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined" style="font-size: 42px; color: #94a3b8; display: block; margin-bottom: 8px;">filter_alt_off</span>
+                        <div style="font-size: 15px; font-weight: 700; color: #334155;">Lama helin wax user ah oo buuxiya shuruudaha aad dooratay</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Isku day inaad bedesho Doorka (Role), Xaaladda (Status), ama Raadinta.</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-3" onclick="resetAllFilters();" style="border-radius: 6px; font-weight: 600;">
+                            <span class="material-symbols-outlined align-middle" style="font-size: 16px;">refresh</span> Dib u soo celi Dhammaan (Show All)
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Role Matrix Guide Modal -->
+<div class="modal fade" id="roleMatrixModal" tabindex="-1" aria-labelledby="roleMatrixModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 14px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background: #1e3a8a; color: #ffffff; border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 18px 24px;">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="roleMatrixModalLabel" style="font-size: 17px; font-weight: 700;">
+                    <span class="material-symbols-outlined">security</span>
+                    Shaxda Awoodaha & Doorka Nidaamka (Role Permission Matrix)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p style="font-size: 13.5px; color: #475569; margin-bottom: 16px;">
+                    Sida uu sharcigu yahay, <strong>Admin-ka</strong> ayaa xaq u leh inuu arko oo bedelo guud ahaan nidaamka. Qof walba oo kale wuxuu ku kooban yahay shaqadiisa:
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" style="font-size: 12.5px;">
+                        <thead style="background: #f1f5f9;">
+                            <tr>
+                                <th>Doorka (Role)</th>
+                                <th>Qaybaha Loo Ogolyahay</th>
+                                <th>Qaybaha Laga Reebay (Restricted)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="role-badge role-admin">Admin</span></td>
+                                <td><strong>Guud ahaan nidaamka oo dhan</strong> (Settings, Users, HR, Billing, OPD, IPD, Lab, Pharmacy, Doctors, Patients)</td>
+                                <td class="text-muted">Waxba lagama reebin (Full Access)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-doctor">Doctor</span></td>
+                                <td>Dashboard, Patients, Appointments, OPD Visits & Consultations, IPD Inpatients, Laboratory Requests & Results, Pharmacy catalog</td>
+                                <td class="text-danger">Settings, Users, HR & Staff, Financial Invoices & Payments</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-nurse">Nurse</span></td>
+                                <td>Dashboard, Patients, Appointments, OPD Triage & Vital Signs, IPD Beds & Admissions</td>
+                                <td class="text-danger">Settings, Users, HR, Billing, Prescriptions, Lab Approvals</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-pharmacist">Pharmacist</span></td>
+                                <td>Dashboard, Pharmacy (Daawooyinka, Stock, Sales, Invoices)</td>
+                                <td class="text-danger">Settings, Users, HR, OPD Consultations, IPD, Medical Records</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-lab">Lab Technician</span></td>
+                                <td>Dashboard, Laboratory (Requests, Samples, Result Entry, Test Catalog)</td>
+                                <td class="text-danger">Settings, Users, HR, Pharmacy, OPD, Inpatient admissions</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-receptionist">Receptionist</span></td>
+                                <td>Dashboard, Patients (New/List), Appointments, OPD Queue, Billing & Invoices</td>
+                                <td class="text-danger">Medical consultations, Lab Results, HR, Settings, Users</td>
+                            </tr>
+                            <tr>
+                                <td><span class="role-badge role-accountant">Accountant</span></td>
+                                <td>Dashboard, Billing, Invoices, Payments, Financial Reports & Analytics</td>
+                                <td class="text-danger">Clinical records, Diagnosis, Prescriptions, HR, Settings, Users</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 12px 24px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Xir (Close)</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const roleSelect = document.getElementById('filterRole');
+    const statusSelect = document.getElementById('filterStatus');
+    const searchInput = document.getElementById('filterSearch');
+    const resetBtn = document.getElementById('resetFilterBtn');
+    const countBadge = document.getElementById('filterCountBadge');
+    const noResultsRow = document.getElementById('noResultsRow');
+    const rows = document.querySelectorAll('.user-row');
+
+    function applyUserFilter() {
+        const roleVal = (roleSelect ? roleSelect.value : '').trim().toLowerCase();
+        const statusVal = (statusSelect ? statusSelect.value : '').trim().toLowerCase();
+        const searchVal = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        rows.forEach(function(row) {
+            const rowRole = (row.getAttribute('data-role') || '').trim().toLowerCase();
+            const rowStatus = (row.getAttribute('data-status') || '').trim().toLowerCase();
+            const rowSearch = (row.getAttribute('data-search') || '').trim().toLowerCase();
+
+            const matchRole = !roleVal || (rowRole === roleVal);
+            const matchStatus = !statusVal || (rowStatus === statusVal);
+            const matchSearch = !searchVal || rowSearch.includes(searchVal);
+
+            if (matchRole && matchStatus && matchSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (noResultsRow) {
+            noResultsRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+
+        if (countBadge) {
+            if (roleVal || statusVal || searchVal) {
+                let parts = [];
+                if (roleVal && roleSelect.selectedIndex > 0) {
+                    parts.push(roleSelect.options[roleSelect.selectedIndex].text);
+                }
+                if (statusVal && statusSelect.selectedIndex > 0) {
+                    parts.push(statusSelect.options[statusSelect.selectedIndex].text);
+                }
+                const label = parts.length > 0 ? parts.join(' | ') : 'Shaandheysan';
+                countBadge.textContent = `Waxaa la helay: ${visibleCount} (${label})`;
+                countBadge.className = 'badge bg-primary text-white';
+            } else {
+                countBadge.textContent = `Muujinaya: ${visibleCount} user`;
+                countBadge.className = 'badge bg-light text-primary border';
+            }
+        }
+
+        if (resetBtn) {
+            resetBtn.style.display = (roleVal || statusVal || searchVal) ? 'flex' : 'none';
+        }
+
+        // Keep URL in sync
+        try {
+            const url = new URL(window.location);
+            if (roleSelect && roleSelect.value) url.searchParams.set('role', roleSelect.value);
+            else url.searchParams.delete('role');
+
+            if (statusSelect && statusSelect.value) url.searchParams.set('status', statusSelect.value);
+            else url.searchParams.delete('status');
+
+            if (searchInput && searchInput.value.trim()) url.searchParams.set('q', searchInput.value.trim());
+            else url.searchParams.delete('q');
+
+            window.history.replaceState({}, '', url);
+        } catch (e) {}
+    }
+
+    if (roleSelect) roleSelect.addEventListener('change', applyUserFilter);
+    if (statusSelect) statusSelect.addEventListener('change', applyUserFilter);
+    if (searchInput) searchInput.addEventListener('input', applyUserFilter);
+
+    window.resetAllFilters = function() {
+        if (roleSelect) roleSelect.value = '';
+        if (statusSelect) statusSelect.value = '';
+        if (searchInput) searchInput.value = '';
+        applyUserFilter();
+    };
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.resetAllFilters();
+        });
+    }
+
+    // Apply immediately on load
+    applyUserFilter();
+});
+</script>
+{% endblock %}

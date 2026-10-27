@@ -1,0 +1,358 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Laboratory Dashboard — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</span>
+</div>
+
+<!-- Header with Actions -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px;">biotech</span>
+            Qaybta Shaybaarka (Laboratory Department)
+        </h3>
+        <p class="text-muted small mb-0">Maamulka baaritaannada, xaqiijinta muunadaha, diiwaangelinta natiijooyinka iyo daabacaadda warbixinta rasmiga ah.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab_test_catalog' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm px-3">
+            <span class="material-symbols-outlined fs-5">format_list_bulleted</span>
+            Liiska Baaritaannada
+        </a>
+        <a href="{% url 'lab_request_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Dalab Baaritaan Cusub
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards (Styled like Main Dashboard) -->
+<div class="row g-3 mb-4">
+    <!-- 1. Total Requests (Navy Blue) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-navy" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1e3a8a;">Wadarta Dalabaadka</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">science</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #1e3a8a; line-height: 1.1; margin: 6px 0;">{{ total_requests }}</div>
+            <div style="font-size: 12px; color: #1e3a8a; font-weight: 500;">
+                <span>Dhammaan baaritaannada la dalbay</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Waiting for Sample (Dark Pink) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-dark-pink" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #be185d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #be185d;">Sugaya Muunad</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fdf2f8; color: #be185d; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">hourglass_top</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #be185d; line-height: 1.1; margin: 6px 0;">{{ pending_requests }}</div>
+            <div style="font-size: 12px; color: #be185d; font-weight: 500;">
+                <span>Muunad sugayaal maanta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. In Progress (White Blue) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-white-blue" style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.06);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #0369a1;">Baaritaan Socda</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; color: #0284c7; border: 1.5px solid #bae6fd; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12); display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">autorenew</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #0369a1; line-height: 1.1; margin: 6px 0;">{{ in_progress }}</div>
+            <div style="font-size: 12px; color: #0284c7; font-weight: 500;">
+                <span>Shaybaarka ku jira hadda</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Completed (Dark Green) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-dark-green" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #15803d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #15803d;">Waa Dhamaadeen</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">task_alt</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #15803d; line-height: 1.1; margin: 6px 0;">{{ completed_total }}</div>
+            <div style="font-size: 12px; color: #15803d; font-weight: 500;">
+                <span>Natiijooyinka la xaqiijiyay</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Recent Orders & Categories -->
+    <div class="col-lg-8">
+        <!-- Recent Orders Card -->
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Baaritaannadii Ugu Dambeeyey</h5>
+                    <span class="text-muted small">Dalabaadkii ugu dambeeyey ee loo soo diray shaybaarka</span>
+                </div>
+                <a href="{% url 'lab_request_list' %}" class="btn btn-sm btn-light text-primary fw-semibold d-flex align-items-center gap-1">
+                    Dhammaan Eeg <span class="material-symbols-outlined fs-6">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>ID & Bukaanka</th>
+                            <th>Dhakhtarka</th>
+                            <th>Baaritaannada</th>
+                            <th>Heerka</th>
+                            <th>Xaaladda</th>
+                            <th class="text-end">Ficilka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in recent_requests %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-primary">{{ req.order_number }}</div>
+                                <div class="small fw-semibold text-dark">{{ req.patient.name }}</div>
+                                <div class="text-muted" style="font-size: 11px;">{{ req.created_at|date:"M d, Y, h:i A" }}</div>
+                            </td>
+                            <td>
+                                {% if req.doctor %}
+                                    <div class="small fw-semibold">{{ req.doctor }}</div>
+                                {% else %}
+                                    <span class="text-muted small">Toos (Walk-in)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for item in req.items.all %}
+                                        <span class="badge bg-light text-dark border" style="font-size: 11px;">{{ item.test.code }}</span>
+                                    {% empty %}
+                                        <span class="text-muted small">Ma jiro</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if req.priority == 'STAT' %}
+                                    <span class="badge-status badge-stat">STAT / Degdeg</span>
+                                {% elif req.priority == 'Urgent' %}
+                                    <span class="badge-status badge-urgent">Urgent</span>
+                                {% else %}
+                                    <span class="badge-status badge-routine">Routine</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if req.status == 'Pending' %}
+                                    <span class="badge-status badge-pending">Sugaya</span>
+                                {% elif req.status == 'Sample Collected' %}
+                                    <span class="badge-status badge-collected">Muunada la helay</span>
+                                {% elif req.status == 'In Progress' %}
+                                    <span class="badge-status badge-progress">Wuu socdaa</span>
+                                {% elif req.status == 'Completed' %}
+                                    <span class="badge-status badge-completed">Dhamaaday</span>
+                                {% else %}
+                                    <span class="badge-status badge-cancelled">{{ req.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="dropdown">
+                                        <span class="material-symbols-outlined fs-6">more_vert</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'lab_request_detail' req.pk %}">
+                                                <span class="material-symbols-outlined fs-6 text-primary">visibility</span> Faahfaahin
+                                            </a>
+                                        </li>
+                                        {% if req.status == 'Pending' %}
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 text-info" href="{% url 'lab_sample_collect' req.pk %}">
+                                                <span class="material-symbols-outlined fs-6">bloodtype</span> Muunada Qaad
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        {% if req.status != 'Completed' %}
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 text-warning" href="{% url 'lab_result_entry' req.pk %}">
+                                                <span class="material-symbols-outlined fs-6">edit_note</span> Geli Natiijooyinka
+                                            </a>
+                                        </li>
+                                        {% else %}
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 text-success" href="{% url 'lab_report_view' req.pk %}">
+                                                <span class="material-symbols-outlined fs-6">print</span> Daabac Warbixinta
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">biotech</span>
+                                Wax baaritaan ah lama diiwaangelin wali. Guji "Dalab Baaritaan Cusub" si aad u bilowdo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lab Departments / Categories -->
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Qaybaha Shaybaarka (Departments)</h5>
+                    <span class="text-muted small">Qaybaha kala duwan ee shaybaarka iyo baaritaannada la heli karo</span>
+                </div>
+                <a href="{% url 'lab_category_create' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">add</span> Qayb Cusub
+                </a>
+            </div>
+
+            <div class="row g-3">
+                {% for cat in categories %}
+                <div class="col-md-6">
+                    <a href="{% url 'lab_test_catalog' %}?category={{ cat.id }}" class="card border rounded-3 p-3 h-100 text-decoration-none transition-hover shadow-sm hover-shadow" style="border-color: #e2e8f0 !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-3 text-primary" style="background: #eef2ff;">
+                                <span class="material-symbols-outlined fs-3">{{ cat.icon|default:'biotech' }}</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold text-dark mb-1">{{ cat.name }}</h6>
+                                <p class="text-muted small mb-0" style="font-size: 12px;">{{ cat.description|default:"Baaritaannada qaybtaan"|truncatechars:45 }}</p>
+                                <span class="badge bg-secondary-subtle text-secondary mt-2" style="font-size: 11px;">{{ cat.test_count }} Baaritaan</span>
+                            </div>
+                            <span class="material-symbols-outlined text-muted fs-5">chevron_right</span>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-3">
+                    Qaybaha shaybaarka wali lama abuurin.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Urgent Alerts & Quick Actions -->
+    <div class="col-lg-4">
+        <!-- STAT / Urgent Alert Widget -->
+        <div class="hms-card mb-4" style="border-top: 4px solid #ef4444;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-danger mb-0 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined fs-5">emergency</span>
+                    STAT & Degdeg (Urgent Queue)
+                </h6>
+                <span class="badge bg-danger">{{ urgent_count }}</span>
+            </div>
+            
+            {% if urgent_requests %}
+                <div class="d-flex flex-column gap-3">
+                    {% for u in urgent_requests %}
+                    <div class="p-3 rounded-3 border" style="background: #fff5f5; border-color: #fed7d7 !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-bold text-dark">{{ u.patient.name }}</span>
+                            <span class="badge-status badge-stat" style="font-size: 10px;">{{ u.priority }}</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <span>ID: {{ u.order_number }}</span> • <span>{{ u.created_at|timesince }} ka hor</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small fw-semibold text-secondary">
+                                {% if u.status == 'Pending' %}Sugaya Muunad{% else %}{{ u.status }}{% endif %}
+                            </span>
+                            <a href="{% url 'lab_result_entry' u.pk %}" class="btn btn-sm btn-danger py-1 px-2" style="font-size: 11px;">
+                                Geli Natiijo
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <span class="material-symbols-outlined fs-2 text-success mb-2 d-block">check_circle</span>
+                    <span class="small">Ma jiraan baaritaanno degdeg ah oo hadda sugaya. Dhammaan waa hagaag!</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Info & Workflow Guide -->
+        <div class="hms-card mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0a192f 100%); color: white;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-warning fs-3">lightbulb</span>
+                <h6 class="fw-bold mb-0 text-white">Habka Shaqada Shaybaarka</h6>
+            </div>
+            <div class="d-flex flex-column gap-3 small text-white-50">
+                <div class="d-flex align-items-start gap-2">
+                    <div class="badge rounded-circle bg-light text-primary" style="width: 22px; height: 22px; display:flex; align-items:center; justify-content:center;">1</div>
+                    <div><strong class="text-white">Dalabka:</strong> Dhakhtarka ama maamulaha ayaa diiwaangeliya baaritaanka bukaanka.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="badge rounded-circle bg-light text-primary" style="width: 22px; height: 22px; display:flex; align-items:center; justify-content:center;">2</div>
+                    <div><strong class="text-white">Muunada:</strong> Kalkaaliyaha ama farsamayaqaanka ayaa qaadaya dhiigga/kaadida.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="badge rounded-circle bg-light text-primary" style="width: 22px; height: 22px; display:flex; align-items:center; justify-content:center;">3</div>
+                    <div><strong class="text-white">Natiijada:</strong> Farsamayaqaanka ayaa geliya natiijooyinka parameter-kasta.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="badge rounded-circle bg-light text-primary" style="width: 22px; height: 22px; display:flex; align-items:center; justify-content:center;">4</div>
+                    <div><strong class="text-white">Daabacaadda:</strong> Warbixin rasmi ah oo sumad leh ayaa loo daabacaa bukaanka.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fast Links Card -->
+        <div class="hms-card">
+            <h6 class="fw-bold text-dark mb-3">Xiriiriyeyaal Fudud</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'lab_request_create' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_box</span>
+                        <span class="small fw-semibold text-dark">Diiwaangeli Baaritaan Cusub</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'lab_result_list' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">assignment_turned_in</span>
+                        <span class="small fw-semibold text-dark">Natiijooyinka Diyaarka ah</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'lab_test_catalog' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-info">price_change</span>
+                        <span class="small fw-semibold text-dark">Qiimaha Baaritaannada</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,488 @@
+﻿{% extends 'settings/base.html' %}
+
+{% block settings_content %}
+<div class="page-content">
+    <!-- Breadcrumb -->
+    <div class="hms-breadcrumb mb-2">
+        <a href="{% url 'dashboard' %}">
+            <span class="material-symbols-outlined fs-6">home</span> Dashboard
+        </a>
+        <span>/</span>
+        <span class="active">Settings & System Configuration</span>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Habeynta Nidaamka (System Settings)</h2>
+            <p class="text-muted small mb-0">Maamul astaanta isbitaalka (logo), bedelka furaha sirta ah, keydinta database-ka (backup), iyo qaabeynta nidaamka.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'settings_backup' %}" class="btn btn-outline-success d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">backup</span> Keydinta Database-ka
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages / Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Navigation Pills / Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2" id="settingsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a href="#hospital-tab-pane" class="settings-nav-pill {% if active_tab == 'hospital' or not active_tab %}active{% endif %}" data-bs-toggle="pill" role="tab">
+                <span class="material-symbols-outlined fs-5">local_hospital</span>
+                Astaanta & Isbitaalka (Hospital & Logo)
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a href="#password-tab-pane" class="settings-nav-pill {% if active_tab == 'password' or active_tab == 'profile' %}active{% endif %}" data-bs-toggle="pill" role="tab">
+                <span class="material-symbols-outlined fs-5">lock_reset</span>
+                Furaha Sirta ah & Akoonka (Password & Profile)
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a href="#backup-tab-pane" class="settings-nav-pill {% if active_tab == 'backup' %}active{% endif %}" data-bs-toggle="pill" role="tab">
+                <span class="material-symbols-outlined fs-5">cloud_download</span>
+                Keydinta & Backup-ka (Database Backup)
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a href="#system-tab-pane" class="settings-nav-pill {% if active_tab == 'system' %}active{% endif %}" data-bs-toggle="pill" role="tab">
+                <span class="material-symbols-outlined fs-5">info</span>
+                Xogta Nidaamka (System Info)
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="settingsTabsContent">
+        <!-- Tab 1: Hospital Profile & Logo -->
+        <div class="tab-pane fade {% if active_tab == 'hospital' or not active_tab %}show active{% endif %}" id="hospital-tab-pane" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
+                    <form method="POST" action="{% url 'settings_hospital' %}" enctype="multipart/form-data" class="hms-card">
+                        {% csrf_token %}
+                        <div class="hms-card-header">
+                            <div>
+                                <h5 class="fw-bold text-slate-800 mb-1">Xogta & Astaanta Rasmiga ah ee Isbitaalka</h5>
+                                <p class="text-muted small mb-0">Xogtani waxay si toos ah uga muuqanaysaa rasiidhada, qaansadaha, iyo warbixinaha la daabaco.</p>
+                            </div>
+                        </div>
+
+                        <!-- Current Logo Preview Box -->
+                        <div class="p-3 mb-4 rounded-3 border bg-light d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white p-2 rounded-3 border shadow-xs d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; overflow: hidden;">
+                                    {% if hospital_setting.logo %}
+                                    <img src="{{ hospital_setting.logo.url }}" alt="Hospital Logo" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                                    {% else %}
+                                    <span class="material-symbols-outlined fs-1 text-primary">local_hospital</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark fs-6">{{ hospital_setting.hospital_name }}</div>
+                                    <div class="small text-muted">{{ hospital_setting.hospital_tagline }}</div>
+                                    <div class="small text-success mt-1 fw-semibold">
+                                        {% if hospital_setting.logo %}Astaanta (Logo) waa la xaqiijiyay{% else %}Astaanta parz-ka (Default Logo){% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="id_logo" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3">
+                                    <span class="material-symbols-outlined fs-6 align-middle">upload</span>
+                                    Bedel Astaanta (Logo)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Form Fields -->
+                        <div class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.hospital_name.label }}</label>
+                                {{ hospital_form.hospital_name }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.currency_symbol.label }}</label>
+                                {{ hospital_form.currency_symbol }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.hospital_tagline.label }}</label>
+                                {{ hospital_form.hospital_tagline }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.phone.label }}</label>
+                                {{ hospital_form.phone }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.email.label }}</label>
+                                {{ hospital_form.email }}
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.address.label }}</label>
+                                {{ hospital_form.address }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.website.label }}</label>
+                                {{ hospital_form.website }}
+                            </div>
+
+                            <!-- Logo Input -->
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.logo.label }}</label>
+                                {{ hospital_form.logo }}
+                                <div class="form-text small">Dooro sawirka astaanta (PNG, JPG, SVG, ama WEBP).</div>
+                            </div>
+
+                            <!-- Invoicing & Prefixes -->
+                            <div class="col-12">
+                                <hr class="my-2 text-muted">
+                                <h6 class="fw-bold text-primary mb-3">Tixraacyada Rasiidhada & Canshuuraha (Numbering & Tax)</h6>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.invoice_prefix.label }}</label>
+                                {{ hospital_form.invoice_prefix }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.opd_prefix.label }}</label>
+                                {{ hospital_form.opd_prefix }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.tax_percentage.label }}</label>
+                                {{ hospital_form.tax_percentage }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-slate-700">{{ hospital_form.invoice_disclaimer.label }}</label>
+                                {{ hospital_form.invoice_disclaimer }}
+                            </div>
+
+                            <!-- Notification Toggles -->
+                            <div class="col-12">
+                                <hr class="my-2 text-muted">
+                                <h6 class="fw-bold text-primary mb-2">Fariimaha & Ogeysiisyada</h6>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ hospital_form.enable_sms_alerts }}
+                                    <label class="form-check-label small fw-semibold ms-2" for="{{ hospital_form.enable_sms_alerts.id_for_label }}">
+                                        Daar Fariimaha SMS-ka (Bukaannada & Ballamaha)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ hospital_form.enable_email_receipts }}
+                                    <label class="form-check-label small fw-semibold ms-2" for="{{ hospital_form.enable_email_receipts.id_for_label }}">
+                                        Daar U Dirista Rasiidhada Email-ka Bukaanka
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                                <span class="material-symbols-outlined align-middle me-1">save</span>
+                                Keydi Xogta Isbitaalka
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Quick Info Card -->
+                <div class="col-12 col-lg-4">
+                    <div class="hms-card mb-4">
+                        <h6 class="fw-bold text-slate-800 mb-3 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">visibility</span>
+                            Muuqaalka Rasiidhada ee Hadda
+                        </h6>
+                        <div class="p-3 bg-light rounded-3 border small">
+                            <div class="fw-bold text-primary mb-1">{{ hospital_setting.hospital_name }}</div>
+                            <div class="text-muted mb-2">{{ hospital_setting.hospital_tagline }}</div>
+                            <div class="text-secondary mb-1"><strong>Tel:</strong> {{ hospital_setting.phone }}</div>
+                            <div class="text-secondary mb-1"><strong>Email:</strong> {{ hospital_setting.email }}</div>
+                            <div class="text-secondary mb-2"><strong>Goobta:</strong> {{ hospital_setting.address }}</div>
+                            <div class="fst-italic text-muted border-top pt-2 mt-2">
+                                "{{ hospital_setting.invoice_disclaimer }}"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: User Profile & Password Change -->
+        <div class="tab-pane fade {% if active_tab == 'password' or active_tab == 'profile' %}show active{% endif %}" id="password-tab-pane" role="tabpanel">
+            <div class="row g-4">
+                <!-- User Profile Form -->
+                <div class="col-12 col-lg-6">
+                    <form method="POST" action="{% url 'settings_password' %}" class="hms-card h-100">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+                        <div class="hms-card-header">
+                            <div>
+                                <h5 class="fw-bold text-slate-800 mb-1">
+                                    <span class="material-symbols-outlined align-middle me-1 text-primary">person</span>
+                                    Xogta Akoonkaaga (Personal Profile)
+                                </h5>
+                                <p class="text-muted small mb-0">Cusbooneysii magacaaga iyo cinwaankaaga email-ka.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-slate-700">Username</label>
+                            <input type="text" class="form-control bg-light" value="{{ request.user.username }}" disabled>
+                            <div class="form-text small">Username-ka lama bedeli karo.</div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-slate-700">{{ profile_form.first_name.label }}</label>
+                                {{ profile_form.first_name }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-slate-700">{{ profile_form.last_name.label }}</label>
+                                {{ profile_form.last_name }}
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-slate-700">{{ profile_form.email.label }}</label>
+                            {{ profile_form.email }}
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-auto pt-3 border-top">
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                                Cusbooneysii Xogtaada
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Password Change Form -->
+                <div class="col-12 col-lg-6">
+                    <form method="POST" action="{% url 'settings_password' %}" class="hms-card h-100">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+                        <div class="hms-card-header">
+                            <div>
+                                <h5 class="fw-bold text-slate-800 mb-1">
+                                    <span class="material-symbols-outlined align-middle me-1 text-warning">lock_reset</span>
+                                    Bedelka Furaha Sirta ah (Password Change)
+                                </h5>
+                                <p class="text-muted small mb-0">Geli furahaagii hore kadibna sameyso fure cusub oo adag.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-slate-700">{{ password_form.old_password.label }}</label>
+                            {{ password_form.old_password }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-slate-700">{{ password_form.new_password.label }}</label>
+                            {{ password_form.new_password }}
+                            <div class="form-text small">Ugu yaraan 6 xaraf oo isugu jira xarfo iyo lambarro.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-slate-700">{{ password_form.confirm_password.label }}</label>
+                            {{ password_form.confirm_password }}
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-auto pt-3 border-top">
+                            <button type="submit" class="btn btn-warning text-dark px-4 py-2 rounded-3 fw-semibold shadow-sm">
+                                <span class="material-symbols-outlined align-middle me-1">key</span>
+                                Bedel Furaha Hadda
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Database Backup Quick Card -->
+        <div class="tab-pane fade {% if active_tab == 'backup' %}show active{% endif %}" id="backup-tab-pane" role="tabpanel">
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-success">cloud_download</span>
+                            Keydinta & Backup-ka Database-ka
+                        </h5>
+                        <p class="text-muted small mb-0">Samee nuqul kayd ah (Backup) oo aad ka badbaadsato xogta haddii cilad dhacdo.</p>
+                    </div>
+                    <form method="POST" action="{% url 'backup_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="/settings/?tab=backup">
+                        <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold shadow-sm">
+                            <span class="material-symbols-outlined fs-5">save</span>
+                            Samee Backup Cusub Hadda
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Database Size Info -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 rounded-3 border bg-light text-center">
+                            <div class="small text-muted mb-1">Cabbirka Database-ka Hadda</div>
+                            <div class="fs-4 fw-bold text-primary">{{ system_info.db_size_mb }} MB</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 rounded-3 border bg-light text-center">
+                            <div class="small text-muted mb-1">Nuqullada Kaydsan (Backups)</div>
+                            <div class="fs-4 fw-bold text-success">{{ backups|length }} fayl</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 rounded-3 border bg-light text-center">
+                            <div class="small text-muted mb-1">Nooca Database-ka</div>
+                            <div class="fs-4 fw-bold text-dark font-monospace">{{ system_info.database_engine|upper }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backups Table -->
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Magaca Faylka Backup-ka</th>
+                                <th>Cabbirka (Size)</th>
+                                <th>Taariikhda La Abuuray</th>
+                                <th class="text-end">Ficillada (Actions)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in backups %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-success fs-5">description</span>
+                                        <span class="fw-bold font-monospace text-dark">{{ b.name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ b.size_kb }} KB</span>
+                                </td>
+                                <td class="small text-muted">{{ b.created_at|date:"d M Y, H:i:s" }}</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <a href="{% url 'backup_download' b.name %}" class="btn btn-sm btn-outline-primary px-3 py-1 rounded-pill fw-semibold">
+                                            <span class="material-symbols-outlined fs-6 align-middle">download</span> Soo Daji
+                                        </a>
+                                        <form method="POST" action="{% url 'backup_delete' b.name %}" onsubmit="return confirm('Ma hubtaa inaad tirtirto faylkan backup-ka ah?');" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="/settings/?tab=backup">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1 rounded-pill">
+                                                <span class="material-symbols-outlined fs-6 align-middle">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    Wali ma jiro backup la abuuray. Riix badhanka sare si aad u abuurto backup-kii ugu horeeyay.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-end mt-3">
+                    <a href="{% url 'settings_backup' %}" class="btn btn-sm btn-link text-decoration-none fw-semibold">
+                        Eeg Bogga Buuxa ee Backup-ka &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: System Information -->
+        <div class="tab-pane fade {% if active_tab == 'system' %}show active{% endif %}" id="system-tab-pane" role="tabpanel">
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-primary">dns</span>
+                            Macluumaadka Nidaamka (System Information)
+                        </h5>
+                        <p class="text-muted small mb-0">Faahfaahinta farsamo ee nidaamka MediCare Hospital Management System.</p>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted fw-semibold" style="width: 45%;">Application Name:</td>
+                                    <td class="fw-bold">MediCare Hospital Management System</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Version:</td>
+                                    <td><span class="badge bg-primary">v2.5.0 Production</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Framework:</td>
+                                    <td class="fw-bold">Django {{ system_info.django_version }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Python Runtime:</td>
+                                    <td>{{ system_info.python_version }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Operating System:</td>
+                                    <td>{{ system_info.os_name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted fw-semibold" style="width: 45%;">Database Engine:</td>
+                                    <td class="font-monospace fw-bold">{{ system_info.database_engine }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Database Size:</td>
+                                    <td>{{ system_info.db_size_mb }} MB</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Server Local Time:</td>
+                                    <td>{{ system_info.server_time|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Total Users Registered:</td>
+                                    <td class="fw-bold">{{ system_info.total_users }} users</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Total Patients in Database:</td>
+                                    <td class="fw-bold text-success">{{ system_info.total_patients }} patients</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

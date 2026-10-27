@@ -1,0 +1,222 @@
+{% extends 'reports/base.html' %}
+
+{% block report_content %}
+<div class="page-content">
+    <!-- Official Print Header -->
+    <div class="print-official-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-primary" style="font-family: 'Fraunces', serif;">MEDICARE GENERAL HOSPITAL</h3>
+                <div class="small text-muted">Waaxda Shaybaarka & Baaritaannada (Laboratory & Pathology Services)</div>
+                <div class="fw-bold text-dark fs-5 mt-1">WARBIXINTA WAXQABADKA SHAYBAARKA (LABORATORY ACTIVITY REPORT)</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-dark">{{ period_label }}</div>
+                <div class="small text-muted">Taariikhda: {% now 'd M Y, H:i' %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'reports_hub' %}">Reports Hub</a>
+                <span>/</span>
+                <span class="active">Shaybaarka (Lab)</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Warbixinta Shaybaarka (Laboratory Report)</h2>
+            <p class="text-muted small mb-0">Tirakoobka baaritaannada dhiigga, kaadida, iyo dheecaannada, natiijooyinka la helay iyo dakhliga.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">print</span> Daabac Warbixinta (Print / PDF)
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Pills -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{% url 'reports_hub' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">analytics</span> Warbixinta Guud (Hub)
+        </a>
+        <a href="{% url 'report_financial' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">account_balance_wallet</span> Dhaqaalaha & Xisaabta
+        </a>
+        <a href="{% url 'report_patients' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">personal_injury</span> Bukaannada & OPD
+        </a>
+        <a href="{% url 'report_laboratory' %}" class="report-nav-pill active">
+            <span class="material-symbols-outlined fs-5">biotech</span> Shaybaarka (Lab)
+        </a>
+        <a href="{% url 'report_pharmacy' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">medication</span> Farmashiyaha
+        </a>
+        <a href="{% url 'report_hr' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">badge</span> Shaqaalaha & HR
+        </a>
+    </div>
+
+    <!-- Date Filter Bar -->
+    <div class="date-filter-bar mb-4">
+        <form method="GET" action="{% url 'report_laboratory' %}" class="row g-2 align-items-center">
+            <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary fs-5">calendar_today</span>
+                <span class="small fw-bold text-slate-700">Muddada:</span>
+            </div>
+            <div class="col-12 col-md-auto d-flex flex-wrap gap-1">
+                <a href="?period=today" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Maanta</a>
+                <a href="?period=this_week" class="btn btn-sm {% if period == 'this_week' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Toddobaadkan</a>
+                <a href="?period=this_month" class="btn btn-sm {% if period == 'this_month' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Bishan</a>
+                <a href="?period=this_year" class="btn btn-sm {% if period == 'this_year' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Sanadkan</a>
+            </div>
+            <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2 mt-2 mt-md-0">
+                <input type="hidden" name="period" value="custom">
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ka</span>
+                    <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ilaa</span>
+                    <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Codso
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badge Info -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 small fw-semibold">
+            Muddada: {{ period_label }}
+        </span>
+    </div>
+
+    <!-- Lab KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">biotech</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Dalabaadka Guud (Requests)</div>
+                    <div class="report-kpi-val text-primary">{{ total_requests }}</div>
+                    <div class="small text-muted mt-1">{{ completed_count }} dhamaaday | {{ processing_count }} socda</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">payments</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Dakhliga Shaybaarka</div>
+                    <div class="report-kpi-val text-success">${{ total_revenue|floatformat:2 }}</div>
+                    <div class="small text-muted mt-1">Total Lab Billing</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fef2f2; color: #dc2626;">
+                    <span class="material-symbols-outlined fs-2">warning</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Heerka Abnormal Rate</div>
+                    <div class="report-kpi-val text-danger">{{ abnormal_rate }}%</div>
+                    <div class="small text-muted mt-1">{{ abnormal_count }} natiijooyin aan caadi ahayn</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fdf4ff; color: #9333ea;">
+                    <span class="material-symbols-outlined fs-2">speed</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Dalabaadka Degdegga (Stat/Urgent)</div>
+                    <div class="report-kpi-val" style="color: #9333ea;">{{ urgent_count|add:stat_count }}</div>
+                    <div class="small text-muted mt-1">{{ stat_count }} Stat | {{ urgent_count }} Urgent</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Tests Conducted Table -->
+    <div class="hms-card mb-4">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-slate-800 mb-1">
+                    <span class="material-symbols-outlined align-middle me-1 text-primary">analytics</span>
+                    Baaritaannada Ugu Badan ee La Dalbaday (Top Requested Tests)
+                </h5>
+                <p class="text-muted small mb-0">Baaritaannada bukaannada ugu badan loo diray iyo dakhligooda.</p>
+            </div>
+        </div>
+
+        {% if top_tests %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Magaca Baaritaanka (Test Name)</th>
+                        <th>Koodhka (Code)</th>
+                        <th>Qaybta (Category)</th>
+                        <th>Qiimaha Halkii Baaritaan</th>
+                        <th class="text-center">Tirada La Qabtay</th>
+                        <th class="text-end">Wadarta Dakhliga ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in top_tests %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ t.test__name }}</td>
+                        <td><span class="badge bg-light text-primary border font-monospace">{{ t.test__code }}</span></td>
+                        <td>{{ t.test__category__name|default:"General" }}</td>
+                        <td>${{ t.test__price|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border px-3 py-1 fs-6 fw-bold">
+                                {{ t.count }} jeer
+                            </span>
+                        </td>
+                        <td class="text-end fw-bold text-success">${{ t.total_val|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">Ma jiraan baaritaanno la sameeyay muddadan.</p>
+        {% endif %}
+    </div>
+
+    <!-- Print Signatures Section -->
+    <div class="d-none d-print-block mt-5 pt-4">
+        <div class="d-flex justify-content-between text-center">
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Madaxa Shaybaarka (Chief Lab Technologist)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Kormeeraha Tayada (Quality Control Officer)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Agaasimaha Caafimaadka (Medical Director)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

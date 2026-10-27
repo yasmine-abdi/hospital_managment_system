@@ -1,0 +1,345 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Faahfaahinta Dalabka {{ lab_req.order_number }} — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_request_list' %}">Baaritaannada</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">{{ lab_req.order_number }}</span>
+</div>
+
+<!-- Header with Action Buttons -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 text-white" style="background: #1e3a8a;">
+            <span class="material-symbols-outlined fs-2">biotech</span>
+        </div>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h3 class="fw-bold text-dark mb-0">{{ lab_req.order_number }}</h3>
+                {% if lab_req.priority == 'STAT' %}
+                    <span class="badge-status badge-stat">STAT / Degdeg</span>
+                {% elif lab_req.priority == 'Urgent' %}
+                    <span class="badge-status badge-urgent">Urgent</span>
+                {% else %}
+                    <span class="badge-status badge-routine">Routine</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-0">La diiwaangeliyey: {{ lab_req.created_at|date:"M d, Y, h:i A" }}</p>
+        </div>
+    </div>
+    
+    <div class="d-flex flex-wrap gap-2">
+        {% if lab_req.status == 'Pending' %}
+        <a href="{% url 'lab_sample_collect' lab_req.pk %}" class="btn btn-info text-white d-flex align-items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined fs-5">bloodtype</span>
+            Xaqiiji Muunada (Sample Collected)
+        </a>
+        {% endif %}
+
+        {% if lab_req.status != 'Completed' %}
+        <a href="{% url 'lab_result_entry' lab_req.pk %}" class="btn btn-warning text-dark d-flex align-items-center gap-1 shadow-sm fw-semibold">
+            <span class="material-symbols-outlined fs-5">edit_note</span>
+            Geli Natiijooyinka
+        </a>
+        {% else %}
+        <a href="{% url 'lab_result_entry' lab_req.pk %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <span class="material-symbols-outlined fs-5">edit</span>
+            Wax ka beddel Natiijada
+        </a>
+        <a href="{% url 'lab_report_view' lab_req.pk %}" class="btn btn-success d-flex align-items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined fs-5">print</span>
+            Daabac Warbixinta Rasmiga ah
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Workflow Stepper -->
+<div class="hms-card mb-4 p-4">
+    <div class="row g-3 text-center position-relative">
+        <!-- Step 1 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: #15803d;">
+                    <span class="material-symbols-outlined fs-5">check</span>
+                </div>
+                <div class="fw-bold text-dark small">1. Dalabka La Abuuray</div>
+                <div class="text-muted" style="font-size: 11px;">{{ lab_req.created_at|date:"d M, H:i" }}</div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if lab_req.status != 'Pending' %}#15803d{% else %}#cbd5e1{% endif %};">
+                    {% if lab_req.status != 'Pending' %}
+                        <span class="material-symbols-outlined fs-5">check</span>
+                    {% else %}
+                        <span class="material-symbols-outlined fs-5">bloodtype</span>
+                    {% endif %}
+                </div>
+                <div class="fw-bold {% if lab_req.status != 'Pending' %}text-dark{% else %}text-muted{% endif %} small">2. Muunada La Qaaday</div>
+                <div class="text-muted" style="font-size: 11px;">
+                    {% if lab_req.sample_collected_at %}{{ lab_req.sample_collected_at|date:"d M, H:i" }}{% else %}Sugaya muunad{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if lab_req.status == 'Completed' %}#15803d{% elif lab_req.status == 'In Progress' or lab_req.status == 'Sample Collected' %}#7e22ce{% else %}#cbd5e1{% endif %};">
+                    {% if lab_req.status == 'Completed' %}
+                        <span class="material-symbols-outlined fs-5">check</span>
+                    {% else %}
+                        <span class="material-symbols-outlined fs-5">science</span>
+                    {% endif %}
+                </div>
+                <div class="fw-bold {% if lab_req.status != 'Pending' %}text-dark{% else %}text-muted{% endif %} small">3. Baaritaanka Socda</div>
+                <div class="text-muted" style="font-size: 11px;">Falanqaynta & baaritaanka</div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 44px; height: 44px; background: {% if lab_req.status == 'Completed' %}#15803d{% else %}#cbd5e1{% endif %};">
+                    {% if lab_req.status == 'Completed' %}
+                        <span class="material-symbols-outlined fs-5">task_alt</span>
+                    {% else %}
+                        <span class="material-symbols-outlined fs-5">lock</span>
+                    {% endif %}
+                </div>
+                <div class="fw-bold {% if lab_req.status == 'Completed' %}text-dark{% else %}text-muted{% endif %} small">4. Natiijada Diyaar ah</div>
+                <div class="text-muted" style="font-size: 11px;">
+                    {% if lab_req.completed_at %}{{ lab_req.completed_at|date:"d M, H:i" }}{% else %}Aan dhamaan{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Patient & Order Details -->
+    <div class="col-lg-4">
+        <!-- Patient Card -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                <span class="material-symbols-outlined text-primary">person</span>
+                Xogta Bukaanka
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Magaca Buuxa:</span>
+                    <strong class="text-dark">{{ lab_req.patient.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Da'da & Jinsiga:</span>
+                    <strong class="text-dark">{{ lab_req.patient.age }} jir • {{ lab_req.patient.gender }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Telefoonka:</span>
+                    <strong class="text-dark">{{ lab_req.patient.phone }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Cinwaanka:</span>
+                    <span class="text-dark">{{ lab_req.patient.address|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Metadata -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                <span class="material-symbols-outlined text-primary">info</span>
+                Xogta Dalabka
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Dhakhtarka Dalbay:</span>
+                    <strong class="text-dark">{{ lab_req.doctor|default:"Walk-in / Toos" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Farsamayaqaanka:</span>
+                    <strong class="text-dark">{{ lab_req.technician|default:"Aan wali la magacaabin" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Xaaladda:</span>
+                    {% if lab_req.status == 'Pending' %}
+                        <span class="badge-status badge-pending">Sugaya</span>
+                    {% elif lab_req.status == 'Sample Collected' %}
+                        <span class="badge-status badge-collected">Muunada la helay</span>
+                    {% elif lab_req.status == 'In Progress' %}
+                        <span class="badge-status badge-progress">Wuu socdaa</span>
+                    {% elif lab_req.status == 'Completed' %}
+                        <span class="badge-status badge-completed">Dhamaaday</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Heerka Degdegga:</span>
+                    <strong class="text-dark">{{ lab_req.priority }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Lacag Bixinta:</span>
+                    {% if lab_req.payment_status == 'Paid' %}
+                        <span class="badge bg-success-subtle text-success">Bixiyay</span>
+                    {% else %}
+                        <span class="badge bg-warning-subtle text-warning">{{ lab_req.payment_status }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between pt-2 border-top">
+                    <span class="fw-bold text-dark">Wadarta Qiimaha:</span>
+                    <span class="fw-bold text-primary fs-5">${{ lab_req.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if lab_req.clinical_notes %}
+        <div class="hms-card">
+            <h6 class="fw-bold text-dark mb-2 border-bottom pb-2">Calaamadaha / Sababta</h6>
+            <p class="small text-muted mb-0">{{ lab_req.clinical_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Ordered Tests & Results Overview -->
+    <div class="col-lg-8">
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Baaritaannada La Dalbay (Ordered Tests)</h5>
+                    <span class="text-muted small">{{ lab_req.items.count }} Baaritaan oo ku jira dalabkan</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Koodhka & Magaca</th>
+                            <th>Nooca Muunada</th>
+                            <th>Waqtiga</th>
+                            <th>Xaaladda</th>
+                            <th class="text-end">Qiimaha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in lab_req.items.all %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">{{ item.test.name }}</div>
+                                <span class="badge bg-light text-primary border" style="font-size: 11px;">{{ item.test.code }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border">{{ item.test.sample_type }}</span>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ item.test.turnaround_time }}</span>
+                            </td>
+                            <td>
+                                {% if item.status == 'Completed' %}
+                                    <span class="badge-status badge-completed">Dhamaaday</span>
+                                {% else %}
+                                    <span class="badge-status badge-pending">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold text-dark">
+                                ${{ item.price }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Results Preview if available -->
+        {% if lab_req.results.exists %}
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">assignment_turned_in</span>
+                        Natiijooyinka Diyaar Ah (Completed Results)
+                    </h5>
+                    <span class="text-muted small">Natiijooyinka la xaqiijiyey ee baaritaannada</span>
+                </div>
+                <a href="{% url 'lab_report_view' lab_req.pk %}" class="btn btn-sm btn-success d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined fs-6">print</span> Daabac Warbixinta
+                </a>
+            </div>
+
+            {% for res in lab_req.results.all %}
+            <div class="mb-4 pb-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-primary mb-0">{{ res.test.name }}</h6>
+                    {% if res.is_abnormal %}
+                        <span class="badge bg-danger-subtle text-danger fw-bold">Natiijo Aan Caadi Ahayn</span>
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success fw-bold">Caadi (Normal)</span>
+                    {% endif %}
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th>Qiyaasta (Parameter)</th>
+                                <th>Natiijada (Result)</th>
+                                <th>Halbeegga (Unit)</th>
+                                <th>Kala-sooca Caadiga ah (Reference)</th>
+                                <th>Heerka (Flag)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in res.values.all %}
+                            <tr>
+                                <td class="fw-semibold">{{ v.parameter_name }}</td>
+                                <td class="fw-bold">{{ v.result_value }}</td>
+                                <td>{{ v.unit|default:"-" }}</td>
+                                <td class="text-muted">{{ v.reference_range|default:"-" }}</td>
+                                <td>
+                                    {% if v.flag == 'Normal' %}
+                                        <span class="flag-normal">Normal</span>
+                                    {% elif v.flag == 'High' %}
+                                        <span class="flag-high">High ↑</span>
+                                    {% elif v.flag == 'Low' %}
+                                        <span class="flag-low">Low ↓</span>
+                                    {% elif v.flag == 'Positive' %}
+                                        <span class="flag-positive">Positive (+)</span>
+                                    {% elif v.flag == 'Negative' %}
+                                        <span class="flag-negative">Negative (-)</span>
+                                    {% else %}
+                                        <span class="flag-abnormal">{{ v.flag }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-muted small">Natiijooyin faahfaahsan lama gelin.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if res.overall_interpretation %}
+                <div class="p-2.5 rounded bg-light border mt-2 small">
+                    <strong>Faallada Farsamayaqaanka:</strong> {{ res.overall_interpretation }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

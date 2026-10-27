@@ -1,0 +1,170 @@
+﻿{% extends 'settings/base.html' %}
+
+{% block settings_content %}
+<div class="page-content">
+    <!-- Breadcrumb -->
+    <div class="hms-breadcrumb mb-2">
+        <a href="{% url 'dashboard' %}">
+            <span class="material-symbols-outlined fs-6">home</span> Dashboard
+        </a>
+        <span>/</span>
+        <a href="{% url 'settings_general' %}">Settings</a>
+        <span>/</span>
+        <span class="active">Keydinta Database-ka (Backups)</span>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Maamulka Keydinta Database-ka (Database Backups)</h2>
+            <p class="text-muted small mb-0">Abuur nuqullo badbaado ah (Database Snapshots), soo daji faylasha kaydka, ama maamul kaydka hore.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'settings_general' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Settings
+            </a>
+            <form method="POST" action="{% url 'backup_create' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold shadow-sm">
+                    <span class="material-symbols-outlined fs-5">save</span> Samee Backup Cusub Hadda
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages / Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Database Status Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+                <div class="small text-muted mb-1">Cabbirka Database-ka Hadda</div>
+                <div class="fs-4 fw-bold text-primary">{{ db_size_mb }} MB</div>
+                <div class="small text-muted mt-1 font-monospace text-truncate" title="{{ db_path }}">{{ db_path }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+                <div class="small text-muted mb-1">Tirada Backups-ka Diyaar ah</div>
+                <div class="fs-4 fw-bold text-success">{{ backups|length }} fayl</div>
+                <div class="small text-muted mt-1">Galka: <code>/backups/</code></div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+                <div class="small text-muted mb-1">Xaaladda Nidaamka</div>
+                <div class="fs-4 fw-bold text-success d-flex align-items-center justify-content-center gap-1">
+                    <span class="material-symbols-outlined">check_circle</span> Caafimaad Qaba
+                </div>
+                <div class="small text-muted mt-1">SQLite Auto-Integrity Checked</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backups List Table -->
+    <div class="hms-card mb-4">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-slate-800 mb-1">
+                    <span class="material-symbols-outlined align-middle me-1 text-primary">folder_zip</span>
+                    Faylasha Keydka ee La Helay (Stored Backups)
+                </h5>
+                <p class="text-muted small mb-0">Riix 'Soo Daji' si aad nuqul uga dhigato kombiyuutarkaaga ama flash-kaaga.</p>
+            </div>
+        </div>
+
+        {% if backups %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Magaca Faylka (Backup File)</th>
+                        <th>Cabbirka (Size)</th>
+                        <th>Taariikhda & Waqtiga La Abuuray</th>
+                        <th class="text-end">Ficillada (Actions)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in backups %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined text-success fs-4">database</span>
+                                <div>
+                                    <span class="fw-bold font-monospace text-dark">{{ b.name }}</span>
+                                    <div class="small text-muted">SQLite Database Snapshot</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-2 py-1 fs-6">
+                                {{ b.size_kb }} KB <small class="text-muted">({{ b.size_mb }} MB)</small>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ b.created_at|date:"D, d M Y" }}</div>
+                            <div class="small text-muted">{{ b.created_at|time:"H:i:s" }}</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <a href="{% url 'backup_download' b.name %}" class="btn btn-sm btn-primary px-3 py-1 rounded-pill fw-semibold shadow-xs" style="background: #1e3a8a; border-color: #1e3a8a;">
+                                    <span class="material-symbols-outlined fs-6 align-middle">download</span> Soo Daji (Download)
+                                </a>
+                                <form method="POST" action="{% url 'backup_delete' b.name %}" onsubmit="return confirm('Ma hubtaa inaad tirtirto faylkan backup-ka ah?');" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1 rounded-pill" title="Tirtir">
+                                        <span class="material-symbols-outlined fs-6 align-middle">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined fs-1 text-muted opacity-50">cloud_off</span>
+            <h5 class="fw-bold text-muted mt-2">Wali Ma Jiro Backup La Abuuray</h5>
+            <p class="small text-muted mb-3">Samee backup-kaaga ugu horeeyay si xogta isbitaalkaagu u ahaato mid sugan.</p>
+            <form method="POST" action="{% url 'backup_create' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm px-3 rounded-pill fw-semibold">
+                    Samee Backup Hadda
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Backup Guidelines & Best Practices Card -->
+    <div class="hms-card bg-light border">
+        <h6 class="fw-bold text-primary mb-2 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined">security</span>
+            Talooyinka Amniga & Badbaadada Xogta (Data Safety Guidelines)
+        </h6>
+        <ul class="small text-muted mb-0 ps-3">
+            <li class="mb-1">Waxaa lagu talinayaa in maalin kasta dhamaadka shaqada la sameeyo backup rasmi ah.</li>
+            <li class="mb-1">Soo daji faylka backup-ka oo ku kaydi disk dibadda ah (External Hard Drive ama USB Flash Drive) ama Cloud badbaado leh.</li>
+            <li>Haddii nidaamka ama kombiyuutarku wax noqdo, waxaad dib u soo celin kartaa xogtii ugu dambaysay adigoo isticmaalaya faylka backup-ka.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,269 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}Qolka Dhakhtarka (OPD Consultation) — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_visit_detail' visit.pk %}">{{ visit.visit_number }}</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Baaritaanka Dhakhtarka</span>
+</div>
+
+<!-- Patient & Vitals Banner -->
+<div class="hms-card mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <span class="token-badge fs-6 p-2 px-3">Token #{{ visit.token_number }}</span>
+            <div>
+                <h4 class="fw-bold text-dark mb-0">{{ visit.patient.name }}</h4>
+                <div class="text-muted small">
+                    {{ visit.visit_number }} • {{ visit.patient.age }} jir • {{ visit.patient.gender }} • Tel: {{ visit.patient.phone }}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'lab_request_create' %}?patient={{ visit.patient.id }}" target="_blank" class="btn btn-outline-info d-flex align-items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined fs-5">biotech</span> U dir Shaybaarka (Lab Order)
+            </a>
+            <a href="{% url 'admission_create' %}?patient={{ visit.patient.id }}" target="_blank" class="btn btn-outline-warning text-dark d-flex align-items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined fs-5">hotel</span> Seexi Bukaan-Jiif (IPD)
+            </a>
+        </div>
+    </div>
+
+    <!-- Vitals Strip -->
+    <div class="row g-2 mt-2">
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-danger-subtle text-danger"><span class="material-symbols-outlined fs-5">favorite</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">BP</div><strong class="text-dark">{{ vitals.blood_pressure|default:"-" }}</strong></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-warning-subtle text-warning"><span class="material-symbols-outlined fs-5">device_thermostat</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">Temp</div><strong class="text-dark">{% if vitals.temperature %}{{ vitals.temperature }}°C{% else %}-{% endif %}</strong></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-danger-subtle text-danger"><span class="material-symbols-outlined fs-5">ecg_heart</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">Pulse</div><strong class="text-dark">{% if vitals.pulse_rate %}{{ vitals.pulse_rate }} bpm{% else %}-{% endif %}</strong></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-info-subtle text-info"><span class="material-symbols-outlined fs-5">air</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">SpO2</div><strong class="text-dark">{% if vitals.oxygen_saturation %}{{ vitals.oxygen_saturation }}%{% else %}-{% endif %}</strong></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-secondary-subtle text-secondary"><span class="material-symbols-outlined fs-5">scale</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">Miisaan</div><strong class="text-dark">{% if vitals.weight %}{{ vitals.weight }} kg{% else %}-{% endif %}</strong></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="vital-pill">
+                <div class="vital-pill-icon bg-primary-subtle text-primary"><span class="material-symbols-outlined fs-5">accessibility_new</span></div>
+                <div><div class="text-muted" style="font-size: 11px;">BMI</div><strong class="text-dark">{{ vitals.bmi|default:"-" }}</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Doctor Encounter Form -->
+<form method="post" id="consultationForm">
+    {% csrf_token %}
+    <div class="row g-4">
+        <!-- Left: Clinical Findings -->
+        <div class="col-lg-6">
+            <div class="hms-card h-100">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                    <span class="material-symbols-outlined text-primary">clinical_notes</span>
+                    Baaritaanka Dhakhtarka (Clinical Encounter)
+                </h5>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Cabashada Ugu Weyn (Chief Complaint) *</label>
+                        {{ form.chief_complaint }}
+                        {% if form.chief_complaint.errors %}<div class="text-danger small">{{ form.chief_complaint.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Taariikhda Xanuunka (History of Illness - HPI)</label>
+                        {{ form.history_of_illness }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Baaritaanka Jirka (Physical Examination)</label>
+                        {{ form.physical_examination }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Cudurka Laga Helay (Diagnosis) *</label>
+                        {{ form.diagnosis }}
+                        {% if form.diagnosis.errors %}<div class="text-danger small">{{ form.diagnosis.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Go'aanka (Disposition / Outcome)</label>
+                        {{ form.outcome }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Ballanta Xigta (Next Follow-up)</label>
+                        {{ form.next_follow_up }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Talada Guud & Faallada Dhakhtarka</label>
+                        {{ form.clinical_notes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Prescription (Rx) Builder -->
+        <div class="col-lg-6">
+            <div class="hms-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined text-success">prescriptions</span>
+                                Qorista Daawada (Prescription / Rx)
+                            </h5>
+                            <span class="text-muted small">Qor daawooyinka bukaanku ka qaadanayo farmashiyaha</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" id="addMedRowBtn">
+                            <span class="material-symbols-outlined fs-6">add</span> Ku dar Daawo
+                        </button>
+                    </div>
+
+                    <!-- Prescriptions Table -->
+                    <div class="table-responsive">
+                        <table class="table-custom" id="medTable">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th style="width: 35%;">Daawada</th>
+                                    <th style="width: 20%;">Qiyaasta</th>
+                                    <th style="width: 25%;">Inta Jeer</th>
+                                    <th style="width: 15%;">Maalmo</th>
+                                    <th style="width: 5%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="medTableBody">
+                                {% if consultation and consultation.prescriptions.exists %}
+                                    {% for rx in consultation.prescriptions.all %}
+                                    <tr class="med-row">
+                                        <td>
+                                            <input type="text" name="med_name[]" value="{{ rx.medicine_name }}" list="medList" class="form-control form-control-sm" placeholder="Magaca daawada" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_dosage[]" value="{{ rx.dosage }}" class="form-control form-control-sm" placeholder="e.g. 500mg">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_frequency[]" value="{{ rx.frequency }}" class="form-control form-control-sm" placeholder="e.g. 1x3">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_duration[]" value="{{ rx.duration }}" class="form-control form-control-sm" placeholder="e.g. 5d">
+                                            <input type="hidden" name="med_instructions[]" value="{{ rx.instructions|default:'' }}">
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm text-danger remove-med-btn p-0"><span class="material-symbols-outlined fs-6">delete</span></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- Default empty row -->
+                                    <tr class="med-row">
+                                        <td>
+                                            <input type="text" name="med_name[]" list="medList" class="form-control form-control-sm" placeholder="Magaca daawada" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_dosage[]" class="form-control form-control-sm" placeholder="e.g. 500mg">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_frequency[]" class="form-control form-control-sm" placeholder="e.g. 1x3">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="med_duration[]" class="form-control form-control-sm" placeholder="e.g. 5d">
+                                            <input type="hidden" name="med_instructions[]" value="Cuntada kadib">
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm text-danger remove-med-btn p-0"><span class="material-symbols-outlined fs-6">delete</span></button>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Datalist from stock -->
+                    <datalist id="medList">
+                        {% for med in medicines %}
+                            <option value="{{ med.name }}">{{ med.name }} (Stock: {{ med.stock_quantity }})</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-outline-secondary">Ka Noqo</a>
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        <span class="material-symbols-outlined fs-5">check_circle</span>
+                        Dhameystir & Daabac Warqadda Daawada (Rx)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block opd_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addBtn = document.getElementById("addMedRowBtn");
+    const tbody = document.getElementById("medTableBody");
+
+    addBtn.addEventListener("click", function() {
+        const tr = document.createElement("tr");
+        tr.className = "med-row";
+        tr.innerHTML = `
+            <td>
+                <input type="text" name="med_name[]" list="medList" class="form-control form-control-sm" placeholder="Magaca daawada" required>
+            </td>
+            <td>
+                <input type="text" name="med_dosage[]" class="form-control form-control-sm" placeholder="e.g. 500mg">
+            </td>
+            <td>
+                <input type="text" name="med_frequency[]" class="form-control form-control-sm" placeholder="e.g. 1x3">
+            </td>
+            <td>
+                <input type="text" name="med_duration[]" class="form-control form-control-sm" placeholder="e.g. 5d">
+                <input type="hidden" name="med_instructions[]" value="Cuntada kadib">
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm text-danger remove-med-btn p-0"><span class="material-symbols-outlined fs-6">delete</span></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        bindRemoveButtons();
+    });
+
+    function bindRemoveButtons() {
+        document.querySelectorAll(".remove-med-btn").forEach(btn => {
+            btn.onclick = function() {
+                if (document.querySelectorAll(".med-row").length > 1) {
+                    this.closest("tr").remove();
+                }
+            };
+        });
+    }
+
+    bindRemoveButtons();
+});
+</script>
+{% endblock %}
+

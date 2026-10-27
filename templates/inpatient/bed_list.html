@@ -1,0 +1,105 @@
+{% extends 'inpatient/base.html' %}
+{% load static %}
+
+{% block title %}Liiska Sariiraha (Bed Availability){% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span class="material-symbols-outlined fs-6">home</span> Dashboard 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> Inpatient (IPD) 
+    <span class="active"><span class="material-symbols-outlined fs-6">chevron_right</span> Beds List</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-primary d-flex" style="background: #e3f2fd;">
+                <span class="material-symbols-outlined fs-2">bed</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Beds</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_beds }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-success d-flex" style="background: #e8f5e9;">
+                <span class="material-symbols-outlined fs-2">check_circle</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Available Beds</div>
+                <div class="fs-4 fw-bold text-dark">{{ available_beds }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-danger d-flex" style="background: #fce4ec;">
+                <span class="material-symbols-outlined fs-2">do_not_disturb_on</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Occupied Beds</div>
+                <div class="fs-4 fw-bold text-dark">{{ occupied_beds }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="hms-card">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+        <div>
+            <h5 class="mb-1 fw-bold text-dark">Ward & Bed Status (Qolalka iyo Sariiraha)</h5>
+            <small class="text-muted">Overview of all wards and their bed availability</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'ward_create' %}" class="btn btn-outline-primary px-3 py-2 fw-semibold d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined fs-5">domain_add</span> Abuur Qeyb (Ward)
+            </a>
+            <a href="{% url 'bed_create' %}" class="btn btn-primary px-3 py-2 fw-semibold d-flex align-items-center gap-2" style="background-color: #0d47a1; border-color: #0d47a1;">
+                <span class="material-symbols-outlined fs-5">add_circle</span> Diiwaangeli Sariir
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for ward in wards %}
+        <div class="col-12">
+            <h6 class="fw-bold text-secondary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">meeting_room</span> {{ ward.name }}
+            </h6>
+            <div class="row g-3">
+                {% for bed in ward.bed_set.all %}
+                <div class="col-md-3 col-sm-6">
+                    <div class="p-3 rounded border text-center {% if bed.is_available %}bg-light border-success{% else %}bg-light border-danger{% endif %}" style="border-left-width: 4px !important;">
+                        <span class="material-symbols-outlined fs-1 {% if bed.is_available %}text-success{% else %}text-danger{% endif %}">
+                            bed
+                        </span>
+                        <h6 class="mt-2 mb-1 fw-bold">Sariirta {{ bed.bed_number }}</h6>
+                        {% if bed.room_number %}
+                            <small class="d-block text-muted mb-2">{{ bed.room_number }}</small>
+                        {% else %}
+                            <small class="d-block text-muted mb-2">&nbsp;</small>
+                        {% endif %}
+                        {% if bed.is_available %}
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Available</span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">Occupied</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-muted fst-italic">No beds added to this ward yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-4 text-muted">
+            <span class="material-symbols-outlined d-block fs-1 mb-2">error</span>
+            Wali wax qol ah (Ward) laguma diiwaangelin.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

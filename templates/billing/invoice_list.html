@@ -1,0 +1,148 @@
+﻿{% extends 'billing/base.html' %}
+{% load static %}
+
+{% block title %}Liiska Qaansadaha (Invoices) — MediCare HMS{% endblock %}
+
+{% block billing_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'billing_dashboard' %}"><span class="material-symbols-outlined fs-6">account_balance_wallet</span> Billing</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Liiska Qaansadaha</span>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Liiska Qaansadaha Isbitaalka (Hospital Invoices)</h3>
+        <p class="text-muted small mb-0">Maamul dhammaan biilasha loo jaray bukaannada qaybaha OPD, Shaybaarka, Farmashiyaha iyo Jiifka.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'payment_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm px-3">
+            <span class="material-symbols-outlined fs-5">payments</span>
+            Diiwaanka Lacag-Qabashada
+        </a>
+        <a href="{% url 'invoice_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Abuur Qaansad Cusub
+        </a>
+    </div>
+</div>
+
+<div class="hms-card">
+    <!-- Filter Tabs & Search -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 mb-3 border-bottom">
+        <div class="d-flex flex-wrap gap-1">
+            <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'all' or not status_filter %}active{% endif %}">
+                Dhammaan ({{ counts.all }})
+            </a>
+            <a href="?status=Unpaid{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Unpaid' %}active{% endif %}">
+                Lama Bixin ({{ counts.unpaid }})
+            </a>
+            <a href="?status=Partially Paid{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Partially Paid' %}active{% endif %}">
+                Qayb ({{ counts.partially_paid }})
+            </a>
+            <a href="?status=Paid{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Paid' %}active{% endif %}">
+                Waa La Bixiyay ({{ counts.paid }})
+            </a>
+        </div>
+
+        <form method="get" class="d-flex gap-2">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            <div class="input-group" style="width: 270px;">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Raadi invoice, bukaan, tel...">
+            </div>
+            {% if search_query %}
+                <a href="?status={{ status_filter }}" class="btn btn-outline-secondary d-flex align-items-center">
+                    <span class="material-symbols-outlined fs-6">close</span>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Bukaanka</th>
+                    <th>Taariikhda</th>
+                    <th>Habka</th>
+                    <th>Wadarta</th>
+                    <th>La Bixiyay</th>
+                    <th>Baqiga (Due)</th>
+                    <th>Xaaladda</th>
+                    <th class="text-end">Ficilka</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td>
+                        <a href="{% url 'invoice_detail' inv.pk %}" class="fw-bold text-primary">
+                            {{ inv.invoice_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark">{{ inv.patient.name }}</div>
+                        <div class="text-muted small">{{ inv.patient.phone }}</div>
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ inv.billing_date|date:"M d, Y" }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border small">{{ inv.payment_method }}</span>
+                    </td>
+                    <td>
+                        <strong class="text-dark">${{ inv.total_amount }}</strong>
+                    </td>
+                    <td>
+                        <span class="text-success fw-semibold">${{ inv.paid_amount }}</span>
+                    </td>
+                    <td>
+                        {% if inv.balance_due > 0 %}
+                            <span class="text-danger fw-bold">${{ inv.balance_due }}</span>
+                        {% else %}
+                            <span class="text-muted small">$0.00</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if inv.status == 'Paid' %}
+                            <span class="badge-status badge-paid">Bixiyay</span>
+                        {% elif inv.status == 'Partially Paid' %}
+                            <span class="badge-status badge-partial">Qayb</span>
+                        {% elif inv.status == 'Unpaid' %}
+                            <span class="badge-status badge-unpaid">Lama bixin</span>
+                        {% else %}
+                            <span class="badge-status badge-cancelled">{{ inv.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'invoice_detail' inv.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin & Lacag Bixin">
+                                <span class="material-symbols-outlined fs-6 text-primary">visibility</span>
+                            </a>
+                            <a href="{% url 'invoice_print' inv.pk %}" class="btn btn-sm btn-success p-1 px-2" title="Daabac Rasiidka">
+                                <span class="material-symbols-outlined fs-6">print</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">receipt</span>
+                        Wax qaansado ah oo waafaqaya sharuudaha lama helin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,166 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}Liiska Bukaan-Socodka (OPD Queue & Visits) — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Safka & Liiska Booqashooyinka</span>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Maamulka Safka & Booqashooyinka (OPD Queue)</h3>
+        <p class="text-muted small mb-0">Liiska bukaannada u diiwaangashan qaybta bukaan-socodka ee sugaya ama dhameystiray baaritaanka.</p>
+    </div>
+    <a href="{% url 'opd_visit_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+        <span class="material-symbols-outlined fs-5">person_add</span>
+        Diiwaangeli Bukaan Cusub
+    </a>
+</div>
+
+<div class="hms-card">
+    <!-- Filter Tabs & Search -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 mb-3 border-bottom">
+        <div class="d-flex flex-wrap gap-1">
+            <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'all' or not status_filter %}active{% endif %}">
+                Dhammaan ({{ counts.all }})
+            </a>
+            <a href="?status=Waiting{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Waiting' %}active{% endif %}">
+                Sugaya ({{ counts.waiting }})
+            </a>
+            <a href="?status=Triage Done{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Triage Done' %}active{% endif %}">
+                Triage Done ({{ counts.triage_done }})
+            </a>
+            <a href="?status=In Consultation{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'In Consultation' %}active{% endif %}">
+                Dhakhtarka La Jooga ({{ counts.in_consultation }})
+            </a>
+            <a href="?status=Completed{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Completed' %}active{% endif %}">
+                Dhamaaday ({{ counts.completed }})
+            </a>
+        </div>
+
+        <form method="get" class="d-flex gap-2">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            <div class="input-group" style="width: 270px;">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Raadi bukaan, ID ama tel...">
+            </div>
+            {% if search_query %}
+                <a href="?status={{ status_filter }}" class="btn btn-outline-secondary d-flex align-items-center">
+                    <span class="material-symbols-outlined fs-6">close</span>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Token</th>
+                    <th>Bukaanka</th>
+                    <th>Dhakhtarka / Qaybta</th>
+                    <th>Nooca</th>
+                    <th>Vitals (Calaamadaha)</th>
+                    <th>Xaaladda</th>
+                    <th>Qidmada</th>
+                    <th class="text-end">Ficilka</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in visits %}
+                <tr>
+                    <td>
+                        <span class="token-badge">#{{ visit.token_number }}</span>
+                        <div class="text-muted" style="font-size: 11px; margin-top: 3px;">{{ visit.visit_date|date:"H:i A" }}</div>
+                    </td>
+                    <td>
+                        <a href="{% url 'opd_visit_detail' visit.pk %}" class="fw-bold text-dark">
+                            {{ visit.patient.name }}
+                        </a>
+                        <div class="text-muted small">{{ visit.visit_number }} • {{ visit.patient.age }} jir • {{ visit.patient.phone }}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ visit.doctor|default:"Dhakhtar Guud" }}</div>
+                        <div class="text-muted" style="font-size: 11px;">{{ visit.department }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border small">{{ visit.visit_type }}</span>
+                    </td>
+                    <td>
+                        {% if visit.vitals %}
+                            <div class="small">
+                                {% if visit.vitals.blood_pressure %}<strong>BP:</strong> {{ visit.vitals.blood_pressure }}<br>{% endif %}
+                                {% if visit.vitals.temperature %}<strong>Temp:</strong> {{ visit.vitals.temperature }}°C{% endif %}
+                            </div>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning small">Lama qaadin</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if visit.status == 'Waiting' %}
+                            <span class="badge-status badge-waiting">Sugaya Vitals</span>
+                        {% elif visit.status == 'Triage Done' %}
+                            <span class="badge-status badge-triage">Diyaar u ah Dhakhtarka</span>
+                        {% elif visit.status == 'In Consultation' %}
+                            <span class="badge-status badge-consulting">Dhakhtarka La Jooga</span>
+                        {% elif visit.status == 'Completed' %}
+                            <span class="badge-status badge-completed">Dhamaaday</span>
+                        {% else %}
+                            <span class="badge-status badge-cancelled">{{ visit.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${{ visit.consultation_fee }}</div>
+                        {% if visit.payment_status == 'Paid' %}
+                            <span class="badge bg-success-subtle text-success" style="font-size: 10px;">Bixiyay</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning" style="font-size: 10px;">{{ visit.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin">
+                                <span class="material-symbols-outlined fs-6 text-primary">visibility</span>
+                            </a>
+
+                            {% if not visit.vitals %}
+                            <a href="{% url 'opd_vitals_record' visit.pk %}" class="btn btn-sm btn-info text-white p-1 px-2" title="Cabbir Vitals-ka">
+                                <span class="material-symbols-outlined fs-6">vital_signs</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'opd_consultation_view' visit.pk %}" class="btn btn-sm btn-primary p-1 px-2" style="background: #1e3a8a; border-color: #1e3a8a;" title="Qolka Dhakhtarka">
+                                <span class="material-symbols-outlined fs-6">stethoscope</span>
+                            </a>
+                            {% endif %}
+
+                            {% if visit.status == 'Completed' %}
+                            <a href="{% url 'opd_prescription_print' visit.pk %}" class="btn btn-sm btn-success p-1 px-2" title="Daabac Rx">
+                                <span class="material-symbols-outlined fs-6">receipt_long</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">person_search</span>
+                        Wax bukaan ah oo waafaqaya sharuudaha lama helin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

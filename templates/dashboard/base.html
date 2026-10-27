@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="so">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="School Management System">
+  <title>{% block title %}Dashboard{% endblock %} — SMS</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Django messages -->
+{% if messages %}
+<div class="messages-container" id="messagesContainer">
+  {% for message in messages %}
+  <div class="message {{ message.tags }}" role="alert">
+    {% if message.tags == 'success' %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+    </svg>
+    {% elif message.tags == 'error' %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+    </svg>
+    {% else %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+    </svg>
+    {% endif %}
+    <span>{{ message }}</span>
+    <button class="message-close" onclick="this.closest('.message').remove()" aria-label="Xidh">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+      </svg>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="layout">
+
+  <!-- ═══════════════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Sidebar">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <path d="M12 2v20M2 12h20"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">{% block school_name %}Isbitaalka{% endblock %}</span>
+        <span class="sidebar-logo-sub">Management System</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard:home' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}" title="Dashboard">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dashboard
+      </a>
+      <a href="{% url 'students:list' %}" class="sidebar-link {% block nav_patients %}{% endblock %}" title="Patients">
+  <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  Patients
+</a>
+
+<a href="{% url 'add_patient' %}" class="sidebar-link {% block nav_add_patient %}{% endblock %}" title="Add Patient">
+  <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+  </svg>
+  Add Patient
+</a>
+      <a href="{% url 'teachers:list' %}" class="sidebar-link {% block nav_doctors %}{% endblock %}" title="Doctors">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="16" y1="21" x2="16" y2="15"/><line x1="21" y1="18" x2="15" y2="18"/></svg>
+        Doctors
+      </a>
+      <a href="{% url 'classes:list' %}" class="sidebar-link {% block nav_appointments %}{% endblock %}" title="Appointments">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Appointments
+      </a>
+      <a href="#" class="sidebar-link" title="OPD">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        OPD
+      </a>
+      <a href="#" class="sidebar-link" title="Inpatients">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        Inpatients
+      </a>
+      <a href="#" class="sidebar-link" title="Pharmacy">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        Pharmacy
+      </a>
+      <a href="#" class="sidebar-link" title="Laboratory">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6M12 15v6M9.5 2 12 6.5 14.5 2"/><path d="M6.5 6.5h11l1 14.5H5.5L6.5 6.5z"/></svg>
+        Laboratory
+      </a>
+      <a href="{% url 'fees:list' %}" class="sidebar-link {% block nav_billing %}{% endblock %}" title="Billing">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Billing
+      </a>
+      <a href="#" class="sidebar-link" title="Payments">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Payments
+      </a>
+      <a href="{% url 'reports:index' %}" class="sidebar-link {% block nav_reports %}{% endblock %}" title="Reports">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Reports
+      </a>
+      <a href="#" class="sidebar-link" title="Inventory">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Inventory
+      </a>
+      <a href="#" class="sidebar-link" title="HR & Staff">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        HR & Staff
+      </a>
+      <a href="{% url 'settings:index' %}" class="sidebar-link {% block nav_settings %}{% endblock %}" title="Settings">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </a>
+      <a href="{% url 'users:list' %}" class="sidebar-link {% block nav_users %}{% endblock %}" title="Users">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Users
+      </a>
+    </nav>
+  </aside>
+  <!-- end sidebar -->
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════ -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <!-- Mobile hamburger -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Fur menu" style="display:flex;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
+        </button>
+
+        <!-- Title -->
+        <span class="topbar-title" style="font-size:20px; font-weight:700;">Dashboard</span>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Notifications -->
+        <a href="{% url 'notifications:list' %}" class="topbar-icon-btn" aria-label="Ogeysiisyada">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          <span class="badge-dot" style="background:#2563eb; color:#fff; font-size:9px; border:none; width:14px; height:14px; display:flex; align-items:center; justify-content:center; top:2px; right:2px;">3</span>
+        </a>
+
+        <!-- User Profile -->
+        <div class="sidebar-user" style="padding:0; gap:12px; margin-left:16px;">
+          <div class="sidebar-avatar" style="width:36px; height:36px;">
+            {% if request.user.profile_picture %}
+              <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.get_full_name }}">
+            {% else %}
+              <img src="{% static 'img/avatar.png' %}" alt="Ahmed Mohamed" onerror="this.outerHTML='{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}'">
+            {% endif %}
+          </div>
+          <div class="sidebar-user-info" style="display:flex; flex-direction:column;">
+            <div class="sidebar-user-name" style="color:var(--text-primary);">Ahmed Mohamed</div>
+            <div class="sidebar-user-role" style="color:var(--text-secondary);">Administrator</div>
+          </div>
+          <svg class="sidebar-user-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="color:var(--text-muted);">
+            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page body -->
+    <main class="page-content" id="pageContent">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+  <!-- end main-content -->
+
+</div>
+<!-- end layout -->
+
+<!-- Scripts -->
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

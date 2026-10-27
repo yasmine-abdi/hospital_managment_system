@@ -1,0 +1,565 @@
+﻿{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb -->
+    <div class="hms-breadcrumb mb-3">
+        <a href="{% url 'dashboard' %}">
+            <span class="material-symbols-outlined fs-6">home</span> Dashboard
+        </a>
+        <span>/</span>
+        <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+        <span>/</span>
+        <a href="{% url 'staff_list' %}">Shaqaalaha</a>
+        <span>/</span>
+        <span class="active">{{ staff.user.get_full_name }}</span>
+    </div>
+
+    <!-- Staff Header Card -->
+    <div class="hms-card mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="staff-avatar" style="width: 72px; height: 72px; font-size: 26px; border-width: 3px;">
+                    {{ staff.user.first_name|first|upper }}{{ staff.user.last_name|first|upper }}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="fw-bold text-dark mb-0" style="font-family: 'DM Sans', sans-serif;">{{ staff.user.get_full_name }}</h3>
+                        {% if staff.status == 'Active' %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% elif staff.status == 'On Leave' %}
+                        <span class="badge-status badge-leave">On Leave</span>
+                        {% elif staff.status == 'Suspended' %}
+                        <span class="badge-status badge-suspended">Suspended</span>
+                        {% else %}
+                        <span class="badge-status badge-resigned">{{ staff.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted d-flex flex-wrap align-items-center gap-2 small">
+                        <span class="badge bg-light text-primary border font-monospace">{{ staff.employee_id|default:"ID: N/A" }}</span>
+                        <span>&bull;</span>
+                        <span class="fw-semibold text-dark">{{ staff.designation }}</span>
+                        <span>&bull;</span>
+                        <span>{{ staff.department }}</span>
+                        <span>&bull;</span>
+                        <span>Shift: <strong>{{ staff.shift }}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3" data-bs-toggle="modal" data-bs-target="#markAttendanceModal">
+                    <span class="material-symbols-outlined fs-5">fact_check</span> Xaadirka
+                </button>
+                <button type="button" class="btn btn-outline-warning text-dark d-inline-flex align-items-center gap-1 rounded-3" data-bs-toggle="modal" data-bs-target="#requestLeaveModal">
+                    <span class="material-symbols-outlined fs-5">flight_takeoff</span> Fasax
+                </button>
+                <button type="button" class="btn btn-outline-success d-inline-flex align-items-center gap-1 rounded-3" data-bs-toggle="modal" data-bs-target="#disbursePayrollModal">
+                    <span class="material-symbols-outlined fs-5">payments</span> Mushahar
+                </button>
+                <a href="{% url 'staff_update' staff.pk %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3">
+                    <span class="material-symbols-outlined fs-5">edit</span> Wax ka bedel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3 col-xl">
+            <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                <div class="small text-muted mb-1">Maalmaha Joogay</div>
+                <div class="fs-4 fw-bold text-success">{{ present_days }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl">
+            <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                <div class="small text-muted mb-1">Soo Daahay</div>
+                <div class="fs-4 fw-bold text-warning">{{ late_days }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl">
+            <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                <div class="small text-muted mb-1">Maqnaaday</div>
+                <div class="fs-4 fw-bold text-danger">{{ absent_days }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl">
+            <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                <div class="small text-muted mb-1">Fasaxyo La Oggolaaday</div>
+                <div class="fs-4 fw-bold text-primary">{{ total_leaves }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl">
+            <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                <div class="small text-muted mb-1">Wadarta Mushaharka La Qaatay</div>
+                <div class="fs-4 fw-bold text-success">${{ total_earned|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2" id="staffDetailTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-semibold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                Guudmar (Overview)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-semibold" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab">
+                Xaadirka (Attendance)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-semibold" id="leaves-tab" data-bs-toggle="tab" data-bs-target="#leaves" type="button" role="tab">
+                Fasaxyada (Leaves)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-semibold" id="payroll-tab" data-bs-toggle="tab" data-bs-target="#payroll" type="button" role="tab">
+                Mushahaaraadka (Payroll)
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="staffDetailTabsContent">
+        <!-- Tab 1: Overview -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="hms-card h-100">
+                        <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">badge</span>
+                            Xogta Xirfadda & Shaqada
+                        </h5>
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted fw-semibold" style="width: 40%;">Employee ID:</td>
+                                    <td class="fw-bold font-monospace text-primary">{{ staff.employee_id|default:"N/A" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Qaybta (Department):</td>
+                                    <td class="fw-bold">{{ staff.department }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Darajada (Designation):</td>
+                                    <td>{{ staff.designation }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Waqtiga (Shift):</td>
+                                    <td><span class="badge bg-light text-dark border">{{ staff.shift }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Shahaadada (Qualification):</td>
+                                    <td>{{ staff.qualification|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Khibradda (Experience):</td>
+                                    <td>{{ staff.experience_years }} sano</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Taariikhda Bilowga:</td>
+                                    <td>{{ staff.hire_date|date:"d M Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Mushaharka Asaasiga:</td>
+                                    <td class="fw-bold text-success fs-6">${{ staff.salary|floatformat:2 }} / bishii</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <div class="hms-card h-100">
+                        <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">contact_phone</span>
+                            Xiriirka & Shakhsiga
+                        </h5>
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted fw-semibold" style="width: 40%;">Username:</td>
+                                    <td class="font-monospace">@{{ staff.user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Jinsiga (Gender):</td>
+                                    <td>{{ staff.gender }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Telefoonka:</td>
+                                    <td class="fw-bold">{{ staff.phone|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Email:</td>
+                                    <td>{% if staff.email %}{{ staff.email }}{% elif staff.user.email %}{{ staff.user.email }}{% else %}-{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Qofka Degdegga ah:</td>
+                                    <td class="text-danger fw-semibold">{{ staff.emergency_contact|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Cinwaanka:</td>
+                                    <td>{{ staff.address|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-semibold">Faallada (Notes):</td>
+                                    <td class="text-muted fst-italic">{{ staff.notes|default:"Ma jiro wax faallo ah oo ku qoran." }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Attendance History -->
+        <div class="tab-pane fade" id="attendance" role="tabpanel">
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">Diiwaanka Xaadirka (Recent Attendance Records)</h5>
+                        <p class="text-muted small mb-0">30-kii maalmood ee ugu dambeeyay ee xaadirka shaqaalaha.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#markAttendanceModal">
+                        + Diiwaangeli Xaadir
+                    </button>
+                </div>
+
+                {% if attendances %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Taariikhda</th>
+                                <th>Xaaladda (Status)</th>
+                                <th>Soo Gelitaanka</th>
+                                <th>Bixitaanka</th>
+                                <th>Qofka Qabtay</th>
+                                <th>Faallada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in attendances %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ att.date|date:"D, d M Y" }}</td>
+                                <td>
+                                    {% if att.status == 'Present' %}
+                                    <span class="badge-status badge-present">Jooga (Present)</span>
+                                    {% elif att.status == 'Late' %}
+                                    <span class="badge-status badge-late">Daahay (Late)</span>
+                                    {% elif att.status == 'Absent' %}
+                                    <span class="badge-status badge-absent">Maqan (Absent)</span>
+                                    {% elif att.status == 'Half Day' %}
+                                    <span class="badge-status badge-halfday">Nus Maalin</span>
+                                    {% else %}
+                                    <span class="badge-status badge-leave">{{ att.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ att.check_in|time:"H:i"|default:"-" }}</td>
+                                <td>{{ att.check_out|time:"H:i"|default:"-" }}</td>
+                                <td class="small text-muted">{% if att.recorded_by %}{{ att.recorded_by.get_full_name|default:att.recorded_by.username }}{% else %}System{% endif %}</td>
+                                <td class="small text-muted">{{ att.notes|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="small mb-0">Wali ma jiraan xog xaadir oo loo diiwaangeliyay shaqaalahan.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab 3: Leaves History -->
+        <div class="tab-pane fade" id="leaves" role="tabpanel">
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">Diiwaanka Fasaxyada (Leave Records)</h5>
+                        <p class="text-muted small mb-0">Dhammaan codsiyada fasaxa ee shaqaalahani gudbiyay.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-warning text-dark fw-semibold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#requestLeaveModal">
+                        + Codsi Fasax Cusub
+                    </button>
+                </div>
+
+                {% if leaves %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Nooca Fasaxa</th>
+                                <th>Taariikhda</th>
+                                <th>Maalmaha</th>
+                                <th>Sababta</th>
+                                <th>Xaaladda</th>
+                                <th>Go'aamiyay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lv in leaves %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ lv.get_leave_type_display }}</td>
+                                <td>{{ lv.start_date|date:"d M Y" }} &rarr; {{ lv.end_date|date:"d M Y" }}</td>
+                                <td class="fw-bold">{{ lv.days_count }} maalmood</td>
+                                <td class="small text-muted">{{ lv.reason|truncatechars:50 }}</td>
+                                <td>
+                                    {% if lv.status == 'Approved' %}
+                                    <span class="badge-status badge-approved">La Oggolaaday</span>
+                                    {% elif lv.status == 'Pending' %}
+                                    <span class="badge-status badge-pending">Sugaya</span>
+                                    {% else %}
+                                    <span class="badge-status badge-rejected">La Diiday</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ lv.approved_by.get_full_name|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="small mb-0">Ma jiraan codsiyo fasax oo loo diiwaangeliyay.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab 4: Payroll History -->
+        <div class="tab-pane fade" id="payroll" role="tabpanel">
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">Diiwaanka Mushahaaraadka (Salary Slips)</h5>
+                        <p class="text-muted small mb-0">Mushahaaraadka la bixiyay iyo faahfaahinta lacagaha.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#disbursePayrollModal">
+                        + Bixi Mushahar
+                    </button>
+                </div>
+
+                {% if payrolls %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Voucher #</th>
+                                <th>Bisha (Month)</th>
+                                <th>Asaasiga</th>
+                                <th>Gunnada</th>
+                                <th>Jarista</th>
+                                <th>Wadarta Net ($)</th>
+                                <th>Habka</th>
+                                <th>Taariikhda</th>
+                                <th class="text-end">Pay Slip</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pay in payrolls %}
+                            <tr>
+                                <td class="font-monospace fw-bold text-primary">{{ pay.payroll_number|default:"-" }}</td>
+                                <td class="fw-semibold text-dark">{{ pay.salary_month }}</td>
+                                <td>${{ pay.basic_salary|floatformat:2 }}</td>
+                                <td class="text-success">+${{ pay.allowances|floatformat:2 }}</td>
+                                <td class="text-danger">-${{ pay.deductions|floatformat:2 }}</td>
+                                <td class="fw-bold text-success fs-6">${{ pay.net_salary|floatformat:2 }}</td>
+                                <td class="small">{{ pay.payment_method }}</td>
+                                <td class="small text-muted">{{ pay.payment_date|date:"d M Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'payroll_print' pay.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill d-inline-flex align-items-center gap-1">
+                                        <span class="material-symbols-outlined fs-6">print</span> Pay Slip
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="small mb-0">Wali ma jiraan mushahaar la bixiyay oo loo diiwaangeliyay.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Mark Attendance Modal -->
+<div class="modal fade" id="markAttendanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'attendance_mark' %}" class="modal-content rounded-4 border-0 shadow">
+            {% csrf_token %}
+            <input type="hidden" name="staff_id" value="{{ staff.pk }}">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">fact_check</span>
+                    Diiwaangeli Xaadirka: {{ staff.user.get_full_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Taariikhda *</label>
+                    <input type="date" name="date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Xaaladda Xaadirka *</label>
+                    <select name="status" class="form-select form-control" required>
+                        <option value="Present" selected>Jooga (Present)</option>
+                        <option value="Late">Soo Daahay (Late)</option>
+                        <option value="Absent">Maqan (Absent)</option>
+                        <option value="Half Day">Nus Maalin (Half Day)</option>
+                        <option value="On Leave">Fasax Ku Maqan (On Leave)</option>
+                    </select>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Waqtiga Soo Gelitaanka</label>
+                        <input type="time" name="check_in" class="form-control" value="08:00">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Waqtiga Baxitaanka</label>
+                        <input type="time" name="check_out" class="form-control" value="16:00">
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-semibold">Faallada / Xusuusin</label>
+                    <input type="text" name="notes" class="form-control" placeholder="Tusaale: Sababta daahitaanka ama fasaxa">
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                <button type="submit" class="btn btn-primary fw-semibold px-4" style="background: #1e3a8a; border-color: #1e3a8a;">
+                    Keydi Xaadirka
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 2: Request Leave Modal -->
+<div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'leave_create' %}" class="modal-content rounded-4 border-0 shadow">
+            {% csrf_token %}
+            <input type="hidden" name="staff" value="{{ staff.pk }}">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-warning">flight_takeoff</span>
+                    Codsiga Fasaxa: {{ staff.user.get_full_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Nooca Fasaxa *</label>
+                    {{ leave_form.leave_type }}
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Taariikhda Bilowga *</label>
+                        {{ leave_form.start_date }}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Taariikhda Dhammaadka *</label>
+                        {{ leave_form.end_date }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Sababta Fasaxa *</label>
+                    {{ leave_form.reason }}
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-semibold">Xaaladda Codsiga</label>
+                    {{ leave_form.status }}
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                <button type="submit" class="btn btn-warning text-dark fw-semibold px-4">
+                    Gudbi Codsiga Fasaxa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal 3: Disburse Payroll Modal -->
+<div class="modal fade" id="disbursePayrollModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'payroll_create' %}" class="modal-content rounded-4 border-0 shadow">
+            {% csrf_token %}
+            <input type="hidden" name="staff" value="{{ staff.pk }}">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">payments</span>
+                    Bixinta Mushaharka: {{ staff.user.get_full_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Bisha Mushaharka *</label>
+                    <input type="text" name="salary_month" class="form-control" value="{% now 'F Y' %}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Mushaharka Asaasiga ah ($) *</label>
+                    <input type="number" step="0.5" name="basic_salary" class="form-control" value="{{ staff.salary }}" required>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Gunnada / Overtime ($)</label>
+                        <input type="number" step="0.5" name="allowances" class="form-control" value="0.00">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Jarista / Deductions ($)</label>
+                        <input type="number" step="0.5" name="deductions" class="form-control" value="0.00">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Habka Lacag Bixinta *</label>
+                        <select name="payment_method" class="form-select form-control">
+                            <option value="Bank Transfer" selected>Bank Transfer</option>
+                            <option value="EVC Plus / Mobile Money">EVC Plus / Mobile Money</option>
+                            <option value="Cash">Kaash (Cash)</option>
+                            <option value="Cheque">Jeeg (Cheque)</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Taariikhda Bixinta *</label>
+                        <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Tixraaca Bixinta (TXID / Ref)</label>
+                    <input type="text" name="reference_number" class="form-control" placeholder="e.g. TXID-987123">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-semibold">Xaaladda Bixinta</label>
+                    <select name="status" class="form-select form-control">
+                        <option value="Paid" selected>La Bixiyay (Paid)</option>
+                        <option value="Pending">Sugaya (Pending)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                <button type="submit" class="btn btn-success fw-semibold px-4">
+                    Xaqiiji & Bixi Mushaharka
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,357 @@
+﻿{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <span class="active">
+                    <span class="material-symbols-outlined fs-6">badge</span> HR & Staff Management
+                </span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Maamulka Shaqaalaha & HR</h2>
+            <p class="text-muted small mb-0">Diiwaanka shaqaalaha, xaadirka maalinlaha, codsiyada fasaxa, iyo xisaabinta mushahaaraadka.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3">
+                <span class="material-symbols-outlined fs-5">fact_check</span> Xaadirka Maanta
+            </a>
+            <a href="{% url 'payroll_list' %}" class="btn btn-outline-success d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3">
+                <span class="material-symbols-outlined fs-5">payments</span> Mushahaaraadka
+            </a>
+            <a href="{% url 'staff_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                <span class="material-symbols-outlined fs-5">person_add</span> Diiwaangeli Shaqaale Cusub
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages / Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- HR KPI Cards (Styled like Main Dashboard) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Staff (Navy Blue) -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-navy" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1e3a8a;">Shaqaalaha Guud</span>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">groups</span>
+                    </div>
+                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #1e3a8a; line-height: 1.1; margin: 6px 0;">{{ total_staff }}</div>
+                <div style="font-size: 12px; color: #1e3a8a; font-weight: 500;">
+                    <span>{{ active_staff }} Firfircoon (Active)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Present Today (Dark Green) -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-dark-green" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #15803d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #15803d;">Xaadirka Maanta</span>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">how_to_reg</span>
+                    </div>
+                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #15803d; line-height: 1.1; margin: 6px 0;">{{ present_today }}</div>
+                <div style="font-size: 12px; color: #15803d; font-weight: 500;">
+                    <span>{{ late_today }} Soo daahay | {{ absent_today }} Maqan</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. On Leave (Dark Pink) -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-dark-pink" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #be185d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #be185d;">Fasax Ku Maqan</span>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #fdf2f8; color: #be185d; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">flight_takeoff</span>
+                    </div>
+                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #be185d; line-height: 1.1; margin: 6px 0;">{{ on_leave_staff }}</div>
+                <div style="font-size: 12px; color: #be185d; font-weight: 500;">
+                    <span>{{ on_leave_today }} Maanta fasax ku qoran</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Pending Leave Requests (White Blue) -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-white-blue" style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.06);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #0369a1;">Codsiyada Sugaya</span>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; color: #0284c7; border: 1.5px solid #bae6fd; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">pending_actions</span>
+                    </div>
+                </div>
+                <div style="font-size: 32px; font-weight: 700; color: #0369a1; line-height: 1.1; margin: 6px 0;">{{ pending_leaves_count }}</div>
+                <div style="font-size: 12px; color: #0284c7; font-weight: 500;">
+                    <a href="{% url 'leave_list' %}?status=Pending" style="color: #0284c7; font-weight: 600; text-decoration: none;">Eeg codsiyada &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Monthly Payroll (White Purple) -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-white-purple" style="background: #faf5ff; border: 1px solid #e9d5ff; border-left: 4px solid #9333ea; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(126, 34, 206, 0.06);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #7e22ce;">Mushaharka Bishii</span>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; color: #7e22ce; border: 1.5px solid #d8b4fe; box-shadow: 0 2px 6px rgba(126, 34, 206, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">payments</span>
+                    </div>
+                </div>
+                <div style="font-size: 26px; font-weight: 700; color: #6b21a8; line-height: 1.1; margin: 6px 0;">${{ total_monthly_payroll|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: #7e22ce; font-weight: 500;">
+                    <span>Miisaaniyadda aasaasiga</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main HR Layout: 2 Columns -->
+    <div class="row g-4">
+        <!-- Left Column: Department Breakdown & Today's Attendance Overview -->
+        <div class="col-12 col-lg-7">
+            <!-- Today's Attendance Banner -->
+            <div class="hms-card mb-4">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-primary">event_available</span>
+                            Xaadirka Maanta ({{ today|date:"d M Y" }})
+                        </h5>
+                        <p class="text-muted small mb-0">Xaaladda imaanshaha shaqaalaha isbitaalka ee maanta.</p>
+                    </div>
+                    <a href="{% url 'attendance_list' %}" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3">
+                        Geli Xaadirka Buuxa &rarr;
+                    </a>
+                </div>
+
+                <div class="row g-2 mb-3 text-center">
+                    <div class="col-3">
+                        <div class="p-3 rounded-3" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <div class="fs-4 fw-bold text-success">{{ present_today }}</div>
+                            <div class="small fw-semibold text-success">Jooga (Present)</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 rounded-3" style="background: #fefce8; border: 1px solid #fef08a;">
+                            <div class="fs-4 fw-bold text-warning">{{ late_today }}</div>
+                            <div class="small fw-semibold text-warning">Daahay (Late)</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 rounded-3" style="background: #fef2f2; border: 1px solid #fecaca;">
+                            <div class="fs-4 fw-bold text-danger">{{ absent_today }}</div>
+                            <div class="small fw-semibold text-danger">Maqan (Absent)</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-3 rounded-3" style="background: #eff6ff; border: 1px solid #bfdbfe;">
+                            <div class="fs-4 fw-bold text-primary">{{ on_leave_today }}</div>
+                            <div class="small fw-semibold text-primary">Fasax (Leave)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-2">
+                    <p class="small text-muted mb-0">
+                        Si aad u diiwaangeliso xilliga imaanshaha ama bixitaanka shaqaale kasta, isticmaal bogga 
+                        <a href="{% url 'attendance_list' %}" class="fw-semibold text-primary">Xaadirka Maalinlaha ah</a>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Department Breakdown -->
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-primary">hub</span>
+                            Qeybaha Shaqada (Department Distribution)
+                        </h5>
+                        <p class="text-muted small mb-0">Tirada shaqaalaha ku meeleysan qeyb kasta oo isbitaalka ah.</p>
+                    </div>
+                    <a href="{% url 'staff_list' %}" class="btn btn-sm btn-outline-secondary fw-semibold rounded-pill px-3">
+                        Eeg Shaqaalaha &rarr;
+                    </a>
+                </div>
+
+                {% if department_stats %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Qaybta (Department)</th>
+                                <th class="text-center">Tirada Shaqaalaha</th>
+                                <th class="text-end">Xiriirka</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in department_stats %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary fs-5">domain</span>
+                                        {{ dept.department }}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border px-3 py-2 fs-6 fw-bold rounded-pill">
+                                        {{ dept.count }} Qof
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'staff_list' %}?department={{ dept.department }}" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill">
+                                        Eeg Shaqaalaha
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <span class="material-symbols-outlined fs-1 text-muted opacity-50">folder_open</span>
+                    <p class="mb-0">Wali ma jiraan xog qaybaha ah.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Pending Leaves & Recent Staff -->
+        <div class="col-12 col-lg-5">
+            <!-- Pending Leave Requests Card -->
+            <div class="hms-card mb-4 border-warning border-opacity-25 shadow-sm">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-warning">pending_actions</span>
+                            Codsiyada Fasaxa ee Sugaya
+                        </h5>
+                        <p class="text-muted small mb-0">Codsiyaalka u baahan oggolaanshaha maamulka.</p>
+                    </div>
+                    <a href="{% url 'leave_list' %}" class="btn btn-sm btn-outline-warning text-dark fw-semibold rounded-pill px-3">
+                        Dhammaan &rarr;
+                    </a>
+                </div>
+
+                {% if pending_leaves %}
+                <div class="d-flex flex-column gap-3">
+                    {% for lv in pending_leaves %}
+                    <div class="p-3 rounded-3 border bg-light-subtle">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="staff-avatar" style="width: 34px; height: 34px; font-size: 12px;">
+                                    {{ lv.staff.user.first_name|first|upper }}{{ lv.staff.user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark fs-6">{{ lv.staff.user.get_full_name }}</div>
+                                    <div class="small text-muted">{{ lv.staff.designation }} &bull; {{ lv.staff.department }}</div>
+                                </div>
+                            </div>
+                            <span class="badge-status badge-pending">Sugaya</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <strong>{{ lv.get_leave_type_display }}</strong>: 
+                            {{ lv.start_date|date:"d M" }} ilaa {{ lv.end_date|date:"d M Y" }} ({{ lv.days_count }} maalmood)
+                        </div>
+                        <div class="small text-secondary fst-italic mb-3 bg-white p-2 rounded border">
+                            "{{ lv.reason|truncatechars:100 }}"
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <form method="POST" action="{% url 'leave_action' lv.pk 'reject' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1 fw-semibold rounded-pill">
+                                    Diid (Reject)
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'leave_action' lv.pk 'approve' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success px-3 py-1 fw-semibold rounded-pill">
+                                    Oggolow (Approve)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <span class="material-symbols-outlined fs-2 text-success opacity-75">task_alt</span>
+                    <p class="small mb-0 mt-1">Ma jiraan codsiyo fasax oo hadda sugaya.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recently Added Staff Members -->
+            <div class="hms-card">
+                <div class="hms-card-header">
+                    <div>
+                        <h5 class="fw-bold text-slate-800 mb-1">
+                            <span class="material-symbols-outlined align-middle me-1 text-primary">person</span>
+                            Shaqaalihii Ugu Dambeeyay
+                        </h5>
+                        <p class="text-muted small mb-0">Shaqaalaha dhowaan lagu daray nidaamka.</p>
+                    </div>
+                    <a href="{% url 'staff_list' %}" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3">
+                        Liiska &rarr;
+                    </a>
+                </div>
+
+                {% if recent_staff %}
+                <div class="d-flex flex-column gap-2">
+                    {% for s in recent_staff %}
+                    <a href="{% url 'staff_detail' s.pk %}" class="p-2 rounded-3 border bg-light-subtle d-flex align-items-center justify-content-between text-decoration-none text-dark hover-shadow" style="transition: background 0.15s ease;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="staff-avatar">
+                                {{ s.user.first_name|first|upper }}{{ s.user.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold text-dark">{{ s.user.get_full_name }}</div>
+                                <div class="small text-muted">{{ s.designation }} &bull; {{ s.department }}</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if s.status == 'Active' %}bg-success-subtle text-success border border-success-subtle{% elif s.status == 'On Leave' %}bg-warning-subtle text-warning border border-warning-subtle{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-2 py-1 small fw-semibold">
+                                {{ s.status }}
+                            </span>
+                            <div class="small text-muted mt-1">{{ s.employee_id }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="small mb-0">Wali ma jiraan shaqaale la diiwaangeliyay.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

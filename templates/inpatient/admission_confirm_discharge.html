@@ -1,0 +1,33 @@
+{% extends 'inpatient/base.html' %}
+
+{% block title %}Fasax Bukaanka (Discharge Patient){% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span class="material-symbols-outlined fs-6">home</span> Dashboard 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> Inpatient (IPD) 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> <a href="{% url 'admission_list' %}" class="text-decoration-none text-secondary">Admissions List</a>
+    <span class="active"><span class="material-symbols-outlined fs-6">chevron_right</span> Discharge Patient</span>
+</div>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="hms-card text-center p-5">
+            <span class="material-symbols-outlined text-warning mb-3" style="font-size: 64px;">door_open</span>
+            <h4 class="fw-bold text-dark mb-3">Ma hubtaa inaad fasaxeyso bukaankan?</h4>
+            <p class="text-muted mb-4">
+                Bukaanka <strong>{{ admission.patient.name }}</strong> ayaa laga saari doonaa sariirta <strong>{{ admission.bed.bed_number }}</strong> ee qolka <strong>{{ admission.bed.ward.name }}</strong>. 
+                Sariirtan ayaa noqon doonta mid furan oo la heli karo (Available).
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'admission_list' %}" class="btn btn-light border px-4">Kanoqo (Cancel)</a>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold">Haa, Fasax (Discharge)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

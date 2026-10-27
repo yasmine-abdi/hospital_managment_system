@@ -1,0 +1,99 @@
+{% extends 'pharmacy/base.html' %}
+
+{% block title %}Rasiidka Iibka (Invoice){% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb d-print-none">
+    <span><span class="material-symbols-outlined" style="font-size: 14px;">home</span> Home</span>
+    <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span>
+    <a href="{% url 'pharmacy_sale_list' %}" class="text-decoration-none text-secondary">Sales List</a>
+    <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span>
+    <span class="active">{% if sale.invoice_number %}{{ sale.invoice_number }}{% else %}Invoice #{{ sale.id }}{% endif %}</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="hms-card bg-white p-5 position-relative" style="border-top: 5px solid #0d47a1;">
+            
+            <!-- Print Button -->
+            <button onclick="window.print()" class="btn btn-primary d-print-none position-absolute top-0 end-0 m-4 rounded-circle" style="width: 48px; height: 48px;" title="Daabac (Print)">
+                <span class="material-symbols-outlined mt-1">print</span>
+            </button>
+
+            <!-- Invoice Header -->
+            <div class="text-center mb-5">
+                <span class="material-symbols-outlined text-primary mb-2" style="font-size: 48px;">local_pharmacy</span>
+                <h3 class="fw-bold m-0" style="font-family: 'Fraunces', serif;">MediCare Pharmacy</h3>
+                <p class="text-muted mb-0">Warqadda Rasiidka / Invoice</p>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <h6 class="fw-bold text-secondary text-uppercase" style="font-size: 12px;">Xogta Iibka</h6>
+                    <div><strong>Invoice No:</strong> {% if sale.invoice_number %}{{ sale.invoice_number }}{% else %}#{{ sale.id }}{% endif %}</div>
+                    <div><strong>Taariikh:</strong> {{ sale.sale_date|date:"d M Y, h:i A" }}</div>
+                </div>
+                <div class="col-6 text-end">
+                    <h6 class="fw-bold text-secondary text-uppercase" style="font-size: 12px;">Bukaanka (Patient)</h6>
+                    {% if sale.patient %}
+                        <div class="fw-bold fs-5">{{ sale.patient.name }}</div>
+                        <div class="text-muted">ID: {{ sale.patient.id }}</div>
+                    {% else %}
+                        <div class="fw-bold fs-5">Walk-in</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="table table-bordered mb-4">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-uppercase" style="font-size: 13px;">Daawo (Item)</th>
+                        <th class="text-center text-uppercase" style="font-size: 13px;">Tirada (Qty)</th>
+                        <th class="text-end text-uppercase" style="font-size: 13px;">Qiimaha (Price)</th>
+                        <th class="text-end text-uppercase" style="font-size: 13px;">Wadarta (Total)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sale.items.all %}
+                    <tr>
+                        <td>{{ item.medicine.name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">${{ item.unit_price }}</td>
+                        <td class="text-end fw-bold">${{ item.total }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Daawooyin laguma darin</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Total Section -->
+            <div class="row justify-content-end">
+                <div class="col-md-5">
+                    <div class="d-flex justify-content-between p-3 bg-light rounded">
+                        <span class="fw-bold text-secondary">Wadarta Guud:</span>
+                        <span class="fw-bold fs-4 text-success">${{ sale.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted" style="font-size: 12px;">Mahadsanid, caafimaad degdeg ah ayaan kuu rajaynaynaa!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body { background: white; }
+        .sidebar, .topbar { display: none !important; }
+        .main-content { margin-left: 0 !important; }
+        .hms-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,119 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Natiijooyinka Shaybaarka (Lab Results) — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Natiijooyinka</span>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Natiijooyinka Baaritaannada (Completed Lab Results)</h3>
+        <p class="text-muted small mb-0">Liiska baaritaannada la dhameeyey ee diyaarka u ah daabacaadda iyo gaarsiinta bukaanka.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab_request_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Dalab Baaritaan Cusub
+        </a>
+    </div>
+</div>
+
+<div class="hms-card">
+    <!-- Search Bar -->
+    <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+        <span class="fw-semibold text-secondary small">Wadarta Natiijooyinka: <strong class="text-dark">{{ results.count }}</strong></span>
+        <form method="get" class="d-flex gap-2">
+            <div class="input-group" style="width: 280px;">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Raadi bukaan ama Order ID...">
+            </div>
+            {% if search_query %}
+                <a href="{% url 'lab_result_list' %}" class="btn btn-outline-secondary d-flex align-items-center">
+                    <span class="material-symbols-outlined fs-6">close</span>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Bukaanka</th>
+                    <th>Dhakhtarka</th>
+                    <th>Baaritaannada</th>
+                    <th>Farsamayaqaanka</th>
+                    <th>Taariikhda Natiijada</th>
+                    <th class="text-end">Warbixinta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in results %}
+                <tr>
+                    <td>
+                        <a href="{% url 'lab_report_view' req.pk %}" class="fw-bold text-primary">
+                            {{ req.order_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark">{{ req.patient.name }}</div>
+                        <div class="text-muted small">{{ req.patient.age }} jir • {{ req.patient.gender }}</div>
+                    </td>
+                    <td>
+                        {% if req.doctor %}
+                            <div class="small fw-medium">{{ req.doctor }}</div>
+                        {% else %}
+                            <span class="text-muted small">Walk-in</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for item in req.items.all %}
+                                <span class="badge bg-light text-dark border" style="font-size: 11px;">{{ item.test.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="small fw-semibold text-secondary">{{ req.technician|default:"Lab Staff" }}</span>
+                    </td>
+                    <td>
+                        <div class="small text-dark">{{ req.completed_at|date:"M d, Y" }}</div>
+                        <div class="text-muted" style="font-size: 11px;">{{ req.completed_at|date:"h:i A" }}</div>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'lab_request_detail' req.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin">
+                                <span class="material-symbols-outlined fs-6 text-primary">visibility</span>
+                            </a>
+                            <a href="{% url 'lab_report_view' req.pk %}" class="btn btn-sm btn-success p-1 px-2 d-flex align-items-center gap-1" title="Daabac Warbixinta">
+                                <span class="material-symbols-outlined fs-6">print</span>
+                                <span class="small">Warbixin</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">assignment_late</span>
+                        Wali ma jiraan baaritaanno natiijooyinkoodu dhamaadeen.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

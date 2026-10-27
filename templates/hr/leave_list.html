@@ -1,0 +1,228 @@
+{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+                <span>/</span>
+                <span class="active">Maamulka Fasaxyada</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Maamulka Fasaxyada (Leave Requests)</h2>
+            <p class="text-muted small mb-0">Dib-u-eegista, oggolaanshaha, iyo diiwaanka fasaxyada shaqaalaha isbitaalka.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-warning text-dark d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#newLeaveModal">
+                <span class="material-symbols-outlined fs-5">flight_takeoff</span> Codsi Fasax Cusub
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages / Alerts -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Filter Tabs & Stats -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'leave_list' %}" class="filter-tab-btn {% if not status_filter %}active{% endif %}">
+                Dhammaan (All)
+            </a>
+            <a href="{% url 'leave_list' %}?status=Pending" class="filter-tab-btn {% if status_filter == 'Pending' %}active{% endif %}">
+                Sugaya (Pending) <span class="badge bg-danger rounded-pill ms-1">{{ pending_count }}</span>
+            </a>
+            <a href="{% url 'leave_list' %}?status=Approved" class="filter-tab-btn {% if status_filter == 'Approved' %}active{% endif %}">
+                La Oggolaaday (Approved) <span class="badge bg-success rounded-pill ms-1">{{ approved_count }}</span>
+            </a>
+            <a href="{% url 'leave_list' %}?status=Rejected" class="filter-tab-btn {% if status_filter == 'Rejected' %}active{% endif %}">
+                La Diiday (Rejected) <span class="badge bg-secondary rounded-pill ms-1">{{ rejected_count }}</span>
+            </a>
+        </div>
+
+        <form method="GET" action="{% url 'leave_list' %}" class="d-flex gap-2">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            <div class="input-group input-group-sm">
+                <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Raadi shaqaale ama sabab...">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Leaves Table Card -->
+    <div class="hms-card">
+        {% if leaves %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Shaqaalaha Codsaday</th>
+                        <th>Nooca Fasaxa</th>
+                        <th>Muddada (Dates)</th>
+                        <th>Tirada Maalmaha</th>
+                        <th>Sababta</th>
+                        <th>Xaaladda</th>
+                        <th>Go'aamiyay</th>
+                        <th class="text-end">Go'aanka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lv in leaves %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="staff-avatar">
+                                    {{ lv.staff.user.first_name|first|upper }}{{ lv.staff.user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <a href="{% url 'staff_detail' lv.staff.pk %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                        {{ lv.staff.user.get_full_name }}
+                                    </a>
+                                    <div class="small text-muted">{{ lv.staff.employee_id }} &bull; {{ lv.staff.department }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark">{{ lv.get_leave_type_display }}</span>
+                            <div class="small text-muted">Codsaday: {{ lv.applied_on|date:"d M Y" }}</div>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">{{ lv.start_date|date:"d M Y" }}</div>
+                            <div class="small text-muted">&darr; ilaa</div>
+                            <div class="small fw-semibold text-dark">{{ lv.end_date|date:"d M Y" }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-2 py-1 fw-bold fs-6">
+                                {{ lv.days_count }} maalmood
+                            </span>
+                        </td>
+                        <td>
+                            <span class="small text-secondary" title="{{ lv.reason }}">
+                                {{ lv.reason|truncatechars:60 }}
+                            </span>
+                            {% if lv.admin_remarks %}
+                            <div class="small text-muted fst-italic mt-1">
+                                <strong>Jawaabta:</strong> {{ lv.admin_remarks }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if lv.status == 'Approved' %}
+                            <span class="badge-status badge-approved">Approved</span>
+                            {% elif lv.status == 'Pending' %}
+                            <span class="badge-status badge-pending">Pending</span>
+                            {% else %}
+                            <span class="badge-status badge-rejected">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">{% if lv.approved_by %}{{ lv.approved_by.get_full_name|default:lv.approved_by.username }}{% else %}-{% endif %}</div>
+                        </td>
+                        <td class="text-end">
+                            {% if lv.status == 'Pending' %}
+                            <div class="btn-group btn-group-sm">
+                                <form method="POST" action="{% url 'leave_action' lv.pk 'approve' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success px-2 py-1 fw-semibold" title="Oggolow">
+                                        <span class="material-symbols-outlined fs-6 align-middle">check</span> Oggolow
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'leave_action' lv.pk 'reject' %}" class="d-inline ms-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger px-2 py-1 fw-semibold" title="Diid">
+                                        <span class="material-symbols-outlined fs-6 align-middle">close</span> Diid
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">Go'aan la gaaray</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined fs-1 text-muted opacity-50">flight_takeoff</span>
+            <h5 class="fw-bold text-muted mt-2">Ma Jiraan Codsiyo Fasax</h5>
+            <p class="text-muted small mb-3">Ma jiraan codsiyo fasax oo ku habboon shaandhadaada.</p>
+            <button type="button" class="btn btn-warning text-dark btn-sm px-3 rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#newLeaveModal">
+                Gudbi Codsi Cusub
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: New Leave Request Modal -->
+<div class="modal fade" id="newLeaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'leave_create' %}" class="modal-content rounded-4 border-0 shadow">
+            {% csrf_token %}
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-warning">flight_takeoff</span>
+                    Codsiga Fasaxa Shaqaalaha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ leave_form.staff.label }}</label>
+                    {{ leave_form.staff }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ leave_form.leave_type.label }}</label>
+                    {{ leave_form.leave_type }}
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ leave_form.start_date.label }}</label>
+                        {{ leave_form.start_date }}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">{{ leave_form.end_date.label }}</label>
+                        {{ leave_form.end_date }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ leave_form.reason.label }}</label>
+                    {{ leave_form.reason }}
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-semibold">{{ leave_form.status.label }}</label>
+                    {{ leave_form.status }}
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                <button type="submit" class="btn btn-warning text-dark fw-semibold px-4">
+                    Gudbi Codsiga
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

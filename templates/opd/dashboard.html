@@ -1,0 +1,356 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}OPD Dashboard (Bukaan-Socodka) — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active"><span class="material-symbols-outlined fs-6">stethoscope</span> Qaybta Bukaan-Socodka (OPD)</span>
+</div>
+
+<!-- Header with Action -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-size: 32px;">stethoscope</span>
+            Qaybta Bukaan-Socodka (Outpatient Department - OPD)
+        </h3>
+        <p class="text-muted small mb-0">Maamulka safafka bukaanka, qiyaasidda calaamadaha nolosha (Vitals), baaritaanka dhakhtarka iyo qorista daawada.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'opd_visit_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm px-3">
+            <span class="material-symbols-outlined fs-5">format_list_bulleted</span>
+            Liiska Booqashooyinka
+        </a>
+        <a href="{% url 'opd_visit_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">person_add</span>
+            Diiwaangeli Bukaan Cusub
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards (Styled like Main Dashboard) -->
+<div class="row g-3 mb-4">
+    <!-- 1. Today's Visits (Navy Blue) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-navy" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1e3a8a;">Bukaannada Maanta</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">groups</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #1e3a8a; line-height: 1.1; margin: 6px 0;">{{ total_today }}</div>
+            <div style="font-size: 12px; color: #1e3a8a; font-weight: 500;">
+                <span>Dhammaan booqashooyinka maanta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Waiting Queue (Dark Pink) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-dark-pink" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #be185d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #be185d;">Safka Sugitaanka</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fdf2f8; color: #be185d; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">hourglass_top</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #be185d; line-height: 1.1; margin: 6px 0;">{{ queue_waiting }}</div>
+            <div style="font-size: 12px; color: #be185d; font-weight: 500;">
+                <span>Bukaannada sugaya qolka</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Triage Done (White Blue) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-white-blue" style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.06);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #0369a1;">Vitals La Qabtay</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; color: #0284c7; border: 1.5px solid #bae6fd; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12); display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">vital_signs</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #0369a1; line-height: 1.1; margin: 6px 0;">{{ queue_triage }}</div>
+            <div style="font-size: 12px; color: #0284c7; font-weight: 500;">
+                <span>U diyaarsan baaritaanka dhakhtarka</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Completed Today (Dark Green) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card stat-dark-green" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #15803d; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #15803d;">Waa Dhameeyeen</span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px;">task_alt</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: #15803d; line-height: 1.1; margin: 6px 0;">{{ completed_today }}</div>
+            <div style="font-size: 12px; color: #15803d; font-weight: 500;">
+                <span>Kulamada la soo gabagabeeyay</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Active Queue & Recent Completed -->
+    <div class="col-lg-8">
+        <!-- Live Queue Card -->
+        <div class="hms-card mb-4">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-warning">pending_actions</span>
+                        Safka Bukaannada ee Hadda (Live OPD Queue)
+                    </h5>
+                    <span class="text-muted small">Bukaannada hadda ku jira safka sugitaanka, triage-ka ama qolka dhakhtarka</span>
+                </div>
+                <a href="{% url 'opd_visit_list' %}" class="btn btn-sm btn-light text-primary fw-semibold d-flex align-items-center gap-1">
+                    Dhammaan Eeg <span class="material-symbols-outlined fs-6">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Token & Bukaanka</th>
+                            <th>Dhakhtarka / Qaybta</th>
+                            <th>Calaamadaha (Vitals)</th>
+                            <th>Xaaladda</th>
+                            <th class="text-end">Ficilka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in active_queue %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="token-badge">#{{ visit.token_number }}</span>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ visit.patient.name }}</div>
+                                        <div class="text-muted" style="font-size: 11px;">{{ visit.visit_number }} • {{ visit.patient.age }} jir • {{ visit.patient.gender }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small fw-semibold text-dark">{{ visit.doctor|default:"Dhakhtar Guud" }}</div>
+                                <div class="text-muted" style="font-size: 11px;">{{ visit.department }}</div>
+                            </td>
+                            <td>
+                                {% if visit.vitals %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% if visit.vitals.blood_pressure %}
+                                            <span class="badge bg-light text-dark border" style="font-size: 11px;">BP: {{ visit.vitals.blood_pressure }}</span>
+                                        {% endif %}
+                                        {% if visit.vitals.temperature %}
+                                            <span class="badge bg-light text-dark border" style="font-size: 11px;">Temp: {{ visit.vitals.temperature }}°C</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning" style="font-size: 11px;">Lama qaadin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if visit.status == 'Waiting' %}
+                                    <span class="badge-status badge-waiting">Sugaya Vitals</span>
+                                {% elif visit.status == 'Triage Done' %}
+                                    <span class="badge-status badge-triage">Diyaar u ah Dhakhtarka</span>
+                                {% elif visit.status == 'In Consultation' %}
+                                    <span class="badge-status badge-consulting">Dhakhtarka La Jooga</span>
+                                {% else %}
+                                    <span class="badge-status badge-completed">{{ visit.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    {% if not visit.vitals %}
+                                    <a href="{% url 'opd_vitals_record' visit.pk %}" class="btn btn-sm btn-info text-white d-flex align-items-center gap-1" title="Cabbir Vitals-ka">
+                                        <span class="material-symbols-outlined fs-6">vital_signs</span>
+                                        <span class="small">Vitals</span>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'opd_consultation_view' visit.pk %}" class="btn btn-sm btn-primary d-flex align-items-center gap-1" style="background: #1e3a8a; border-color: #1e3a8a;" title="Baar Bukaanka">
+                                        <span class="material-symbols-outlined fs-6">stethoscope</span>
+                                        <span class="small">Dhakhtar</span>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin">
+                                        <span class="material-symbols-outlined fs-6 text-secondary">visibility</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">check_circle</span>
+                                Safka hadda waa madhan yahay. Guji "Diiwaangeli Bukaan Cusub" si aad u bilowdo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recently Completed Consultations -->
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Bukaannadii La Baaray ee La Fasaxay</h5>
+                    <span class="text-muted small">Bukaannada dhakhtarku baaray ee daawada loo qoray</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Bukaanka</th>
+                            <th>Dhakhtarka</th>
+                            <th>Cudurka Laga Helay (Diagnosis)</th>
+                            <th>Go'aanka</th>
+                            <th class="text-end">Warqadda Daawada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in recent_completed %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ visit.patient.name }}</strong>
+                                <div class="text-muted" style="font-size: 11px;">{{ visit.visit_number }}</div>
+                            </td>
+                            <td>
+                                <span class="small fw-semibold">{{ visit.doctor|default:"Dhakhtar Guud" }}</span>
+                            </td>
+                            <td>
+                                {% if visit.consultation %}
+                                    <span class="badge bg-light text-dark border">{{ visit.consultation.diagnosis }}</span>
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if visit.consultation %}
+                                    <span class="small fw-medium text-success">{{ visit.consultation.outcome }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Dhamaaday</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'opd_prescription_print' visit.pk %}" class="btn btn-sm btn-success p-1 px-2 d-inline-flex align-items-center gap-1">
+                                    <span class="material-symbols-outlined fs-6">receipt_long</span>
+                                    <span class="small">Daabac Rx</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-3 text-muted small">Wali ma jiraan baaritaanno dhameystirmay.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: OPD Overview Guide & Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Educational Info: What is OPD? -->
+        <div class="hms-card mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0a192f 100%); color: white;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-warning fs-3">medical_services</span>
+                <h6 class="fw-bold mb-0 text-white">Waa Maxay Shaqada OPD?</h6>
+            </div>
+            <p class="small text-white-50 mb-3">
+                <strong>OPD (Outpatient Department)</strong> ama <em>Qaybta Bukaan-Socodka</em> waa qaybta qaabilsan bukaannada isbitaalka yimaada ee aan jiifsaneyn.
+            </p>
+            <div class="d-flex flex-column gap-2 small text-white-50">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined text-white fs-6 mt-0.5">check_circle</span>
+                    <div><strong class="text-white">1. Saf-gelinta:</strong> Bukaanka ayaa la siiyaa Token Number iyo Visit ID.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined text-white fs-6 mt-0.5">check_circle</span>
+                    <div><strong class="text-white">2. Triage & Vitals:</strong> Cabirka Dhiigkarka, Heerkulka, Neefsiga, iyo Miisaanka.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined text-white fs-6 mt-0.5">check_circle</span>
+                    <div><strong class="text-white">3. Baaritaanka Dhakhtarka:</strong> Dhakhtarka ayaa wareysta, baara jirka, oo ogaada cudurka.</div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined text-white fs-6 mt-0.5">check_circle</span>
+                    <div><strong class="text-white">4. Qorista Daawada (Rx):</strong> Dhakhtarku wuxuu qoraa daawooyinka bukaanka ama wuxuu u diraa shaybaarka.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Doctors in OPD -->
+        <div class="hms-card mb-4">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary">stethoscope</span>
+                Dhakhaatiirta OPD
+            </h6>
+            <div class="d-flex flex-column gap-2.5">
+                {% for doc in doctors %}
+                <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 13px; font-weight: bold;">
+                            Dr
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark small">{{ doc }}</div>
+                            <div class="text-muted" style="font-size: 11px;">{{ doc.specialization.name|default:"General Medicine" }}</div>
+                        </div>
+                    </div>
+                    {% if doc.is_available %}
+                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">Jooga</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 10px;">Ma joogo</span>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-muted small text-center py-2">Dhakhaatiir lama diiwaangelin wali.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Fast Links -->
+        <div class="hms-card">
+            <h6 class="fw-bold text-dark mb-3">Xiriiriyeyaal Degdeg Ah</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'opd_visit_create' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">person_add</span>
+                        <span class="small fw-semibold text-dark">Diiwaangeli Booqasho Cusub</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'opd_visit_list' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-warning">format_list_numbered</span>
+                        <span class="small fw-semibold text-dark">Maamulka Safka (Queue)</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+                <a href="{% url 'patient_list' %}" class="btn btn-light text-start d-flex align-items-center justify-content-between p-3 border">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">folder_shared</span>
+                        <span class="small fw-semibold text-dark">Liiska Bukaannada Guud</span>
+                    </span>
+                    <span class="material-symbols-outlined text-muted fs-6">chevron_right</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,188 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}Cabbirka Calaamadaha Muhiimka ah (Vitals) — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_visit_detail' visit.pk %}">{{ visit.visit_number }}</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Vitals (Triage)</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <!-- Patient Banner -->
+        <div class="hms-card mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0a192f 100%); color: white;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; font-weight: bold; font-size: 20px;">
+                        #{{ visit.token_number }}
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">{{ visit.patient.name }}</h4>
+                        <div class="text-white-50 small">
+                            {{ visit.visit_number }} • {{ visit.patient.age }} jir • {{ visit.patient.gender }} • Tel: {{ visit.patient.phone }}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge bg-white text-primary px-3 py-2 fw-semibold fs-6">OPD Triage</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">vital_signs</span>
+                        Cabbirka Calaamadaha Nolosha (Vital Signs & Triage)
+                    </h5>
+                    <span class="text-muted small">Kalkaalisada triage-ka ayaa diiwaangelinaysa calaamadaha muhiimka ah ee bukaanka</span>
+                </div>
+                <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-sm btn-outline-secondary">Ka Noqo</a>
+            </div>
+
+            <form method="post" id="vitalsForm">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <!-- Blood Pressure -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-danger">favorite</span>
+                            Dhiigkarka (Blood Pressure)
+                        </label>
+                        {{ form.blood_pressure }}
+                        <span class="text-muted" style="font-size: 11px;">Tusaale: 120/80 mmHg</span>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-warning">device_thermostat</span>
+                            Heerkulka (Temperature)
+                        </label>
+                        {{ form.temperature }}
+                        <span class="text-muted" style="font-size: 11px;">Heerka caadiga ah: 36.5 - 37.5 °C</span>
+                    </div>
+
+                    <!-- Pulse Rate -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-danger">ecg_heart</span>
+                            Garaaca Wadnaha (Pulse Rate)
+                        </label>
+                        {{ form.pulse_rate }}
+                        <span class="text-muted" style="font-size: 11px;">bpm (60 - 100 caadi)</span>
+                    </div>
+
+                    <!-- Respiratory Rate -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-info">air</span>
+                            Neefsiga (Respiratory Rate)
+                        </label>
+                        {{ form.respiratory_rate }}
+                        <span class="text-muted" style="font-size: 11px;">Neef/daqiiqo (12 - 20 caadi)</span>
+                    </div>
+
+                    <!-- Oxygen Saturation (SpO2) -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-primary">bloodtype</span>
+                            Ogsajiinta Dhiigga (SpO2 %)
+                        </label>
+                        {{ form.oxygen_saturation }}
+                        <span class="text-muted" style="font-size: 11px;">95% - 100% caadi</span>
+                    </div>
+
+                    <!-- Blood Sugar -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-secondary">water_drop</span>
+                            Sonkorta Degdegga (RBS)
+                        </label>
+                        {{ form.blood_sugar }}
+                        <span class="text-muted" style="font-size: 11px;">mg/dL (e.g. 110 mg/dL)</span>
+                    </div>
+
+                    <!-- Weight -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-secondary">scale</span>
+                            Miisaanka (Weight - kg)
+                        </label>
+                        {{ form.weight }}
+                    </div>
+
+                    <!-- Height -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6 text-secondary">height</span>
+                            Dhererka (Height - cm)
+                        </label>
+                        {{ form.height }}
+                    </div>
+
+                    <!-- BMI calculated display -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary">BMI (Body Mass Index)</label>
+                        <div class="form-control bg-light fw-bold text-primary" id="bmiDisplay">
+                            {% if vitals.bmi %}{{ vitals.bmi }} (Calculated){% else %}Toos ayaa loo xisaabinayaa{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Triage Notes -->
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary">Faallada Kalkaalisada (Triage Notes)</label>
+                        {{ form.triage_notes }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'opd_visit_detail' visit.pk %}" class="btn btn-outline-secondary">Ka Noqo</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm d-flex align-items-center gap-2" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        <span class="material-symbols-outlined fs-5">save</span>
+                        Keydi Vitals-ka (Save Triage)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block opd_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const weightInput = document.querySelector('input[name="weight"]');
+    const heightInput = document.querySelector('input[name="height"]');
+    const bmiDisplay = document.getElementById('bmiDisplay');
+
+    function calculateBMI() {
+        const w = parseFloat(weightInput.value);
+        const h = parseFloat(heightInput.value);
+        if (w > 0 && h > 0) {
+            const h_m = h / 100.0;
+            const bmi = (w / (h_m * h_m)).toFixed(1);
+            let category = "Normal";
+            if (bmi < 18.5) category = "Underweight";
+            else if (bmi >= 25 && bmi < 30) category = "Overweight";
+            else if (bmi >= 30) category = "Obese";
+            bmiDisplay.textContent = bmi + " (" + category + ")";
+        }
+    }
+
+    if (weightInput && heightInput) {
+        weightInput.addEventListener('input', calculateBMI);
+        heightInput.addEventListener('input', calculateBMI);
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,288 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block title %}Liiska Bukaan-jiifka (IPD Admissions){% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<style>
+    /* Navy & White Theme */
+    .page-content { padding: 30px; }
+    .hms-card {
+        background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); padding: 25px;
+    }
+    .hms-breadcrumb { font-size: 13px; color: #64748b; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;}
+    .hms-breadcrumb span { display: flex; align-items: center; gap: 4px; }
+    .hms-breadcrumb .active { color: #1e3a8a; font-weight: 600; }
+    .input-group-text { border-color: #cbd5e1; background-color: #ffffff; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.15); border-color: #3b82f6; }
+    .btn-navy { background-color: #1e3a8a; border-color: #1e3a8a; color: #ffffff; font-weight: 600; }
+    .btn-navy:hover { background-color: #172554; border-color: #172554; color: #ffffff; }
+    .badge-navy { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; font-weight: 600; }
+    .admission-id-badge {
+        font-family: 'DM Mono', monospace, Consolas, monospace;
+        font-weight: 700;
+        color: #1e3a8a;
+        background: #eff6ff;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid #dbeafe;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hms-breadcrumb">
+    <span class="material-symbols-outlined fs-6">home</span> Dashboard 
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span> Inpatient (IPD) 
+    <span class="active"><span class="material-symbols-outlined fs-6">chevron_right</span> Admissions List</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-primary d-flex" style="background: #eff6ff; color: #1e3a8a !important;">
+                <span class="material-symbols-outlined fs-2">hotel</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Admitted</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_admitted }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-success d-flex" style="background: #ecfdf5;">
+                <span class="material-symbols-outlined fs-2">check_circle</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Available Beds</div>
+                <div class="fs-4 fw-bold text-dark">{{ available_beds }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-warning d-flex" style="background: #fffbeb;">
+                <span class="material-symbols-outlined fs-2">door_front</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Discharged</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_discharged }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="hms-card d-flex align-items-center p-3 gap-3 h-100">
+            <div class="rounded p-2 text-info d-flex" style="background: #eff6ff; color: #0284c7;">
+                <span class="material-symbols-outlined fs-2">meeting_room</span>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Wards</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_wards }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="hms-card">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+        <div>
+            <h5 class="mb-1 fw-bold" style="color: #0f172a;">Admissions List (Bukaan-jiif)</h5>
+            <small class="text-muted">Manage all admitted and discharged patients (Ordered from 0001)</small>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'admission_create' %}" class="btn btn-navy d-flex align-items-center gap-1 fw-medium">
+                <span class="material-symbols-outlined fs-5">person_add</span> Admit New Patient
+            </a>
+            <button class="btn btn-outline-danger d-flex align-items-center gap-1 fw-medium">
+                <span class="material-symbols-outlined fs-5">picture_as_pdf</span> Export PDF
+            </button>
+            <button class="btn btn-outline-success d-flex align-items-center gap-1 fw-medium">
+                <span class="material-symbols-outlined fs-5">table_view</span> Export Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Form -->
+    <form method="get" id="admissionFilterForm" class="row g-3 mb-4 p-3 bg-light rounded-3 align-items-end border">
+        <div class="col-md-5">
+            <label class="form-label text-secondary small fw-semibold">Search Patient (Name, ID, Ward, Bed)</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white text-muted"><span class="material-symbols-outlined fs-5">search</span></span>
+                <input type="text" name="q" id="admissionSearchInput" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="Search by name, letter, ID (e.g. 0001)..." autocomplete="off">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-secondary small fw-semibold">Status</label>
+            <select name="status" id="admissionStatusSelect" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="Admitted" {% if status_filter == 'Admitted' %}selected{% endif %}>Admitted</option>
+                <option value="Discharged" {% if status_filter == 'Discharged' %}selected{% endif %}>Discharged</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-navy w-100 d-flex justify-content-center align-items-center gap-1">
+                <span class="material-symbols-outlined fs-5">filter_list</span> Filter
+            </button>
+            <a href="{% url 'admission_list' %}" class="btn btn-light border text-secondary p-2 d-flex align-items-center justify-content-center" title="Reset">
+                <span class="material-symbols-outlined fs-5">restart_alt</span>
+            </a>
+        </div>
+    </form>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary" style="font-size: 13px;">
+                <tr>
+                    <th class="py-3">IPD ID</th>
+                    <th class="py-3">Bukaanka (Patient)</th>
+                    <th class="py-3">Ward & Bed</th>
+                    <th class="py-3">Admission Date</th>
+                    <th class="py-3">Status</th>
+                    <th class="py-3 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="admissionTableBody" style="font-size: 14px; color: #334155;">
+                {% for admission in admissions %}
+                <tr class="admission-row"
+                    data-id="{{ admission.id }}"
+                    data-id-fmt="{{ admission.id|stringformat:'04d' }}"
+                    data-patient="{{ admission.patient.name|lower }}"
+                    data-ward="{{ admission.bed.ward.name|lower }} {{ admission.bed.bed_number|lower }}"
+                    data-status="{{ admission.status }}">
+                    <td>
+                        <span class="admission-id-badge">{{ admission.id|stringformat:'04d' }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="https://ui-avatars.com/api/?name={{ admission.patient.name|urlencode }}&background=1e3a8a&color=ffffff" class="rounded-circle" width="32" height="32" alt="Avatar">
+                            <span class="fw-semibold text-dark">{{ admission.patient.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ admission.bed.ward.name }}</div>
+                        <div class="text-muted small">Bed: {{ admission.bed.bed_number }}</div>
+                    </td>
+                    <td><div class="text-muted">{{ admission.admission_date|date:"d M Y, h:i A" }}</div></td>
+                    <td>
+                        {% if admission.status == 'Admitted' %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill">Admitted</span>
+                        {% else %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill">Discharged</span><br>
+                            <small class="text-muted" style="font-size: 11px;">{{ admission.discharge_date|date:"d M Y" }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'admission_update' admission.id %}" class="btn btn-sm btn-light text-success border" title="Edit Admission"><span class="material-symbols-outlined" style="font-size: 18px;">edit</span></a>
+                            {% if admission.status == 'Admitted' %}
+                                <form method="POST" action="{% url 'discharge_patient' admission.id %}" class="d-inline" onsubmit="return confirm('Ma hubtaa inaad fasaxeyso (discharge) bukaankan?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-light text-warning border" title="Discharge Patient"><span class="material-symbols-outlined" style="font-size: 18px;">door_open</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined d-block mb-2" style="font-size: 48px; color: #cbd5e1;">hotel</span>
+                        Wali wax bukaan ah lama seexin (No admissions yet).
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="jsNoAdmResultsRow" style="display: none;">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-2 text-muted d-block mb-1">hotel</span>
+                        Wax bukaan ah oo ku habboon shaandhada lama helin.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination / Count -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mt-3 pt-3 border-top">
+        <div class="text-muted small">
+            Waxaa muuqda: <strong id="visibleAdmBadge">{{ admissions|length }}</strong> diiwaan
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('admissionSearchInput');
+    const statusSelect = document.getElementById('admissionStatusSelect');
+    const rows = document.querySelectorAll('.admission-row');
+    const jsNoAdmResultsRow = document.getElementById('jsNoAdmResultsRow');
+    const visibleAdmBadge = document.getElementById('visibleAdmBadge');
+
+    function applyAdmFilter() {
+        const rawQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const cleanQuery = rawQuery.replace(/^[#a-z]+/i, '').replace(/^0+/, '');
+        const selectedStatus = (statusSelect ? statusSelect.value : '').trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        rows.forEach(function(row) {
+            const rowId = (row.getAttribute('data-id') || '').trim();
+            const rowIdFmt = (row.getAttribute('data-id-fmt') || '').trim().toLowerCase();
+            const rowPatient = (row.getAttribute('data-patient') || '').trim().toLowerCase();
+            const rowWard = (row.getAttribute('data-ward') || '').trim().toLowerCase();
+            const rowStatus = (row.getAttribute('data-status') || '').trim().toLowerCase();
+
+            let matchQuery = true;
+            if (rawQuery) {
+                const matchId = (rowIdFmt === rawQuery) || (rowIdFmt.includes(rawQuery)) || (rowId === cleanQuery);
+                const matchPatient = rowPatient.includes(rawQuery) || rowPatient.startsWith(rawQuery);
+                const matchWard = rowWard.includes(rawQuery);
+                matchQuery = matchId || matchPatient || matchWard;
+            }
+
+            let matchStatus = true;
+            if (selectedStatus) {
+                matchStatus = (rowStatus === selectedStatus);
+            }
+
+            if (matchQuery && matchStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (visibleAdmBadge) {
+            visibleAdmBadge.textContent = visibleCount;
+        }
+
+        if (jsNoAdmResultsRow) {
+            jsNoAdmResultsRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyAdmFilter);
+    if (statusSelect) statusSelect.addEventListener('change', applyAdmFilter);
+});
+</script>
+{% endblock %}

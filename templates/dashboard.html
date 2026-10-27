@@ -1,0 +1,831 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Management System — Dashboard Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4.0">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <path d="M12 2v20M2 12h20"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">HospitalCare</span>
+        <span class="sidebar-logo-sub">Management System</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" title="Dashboard">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dashboard
+      </a>
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' or request.user.role == 'Nurse' or request.user.role == 'Receptionist' %}
+      <a href="{% url 'patient_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'patient_list' %}active{% endif %}" title="Patients">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Patient List
+      </a>
+      <a href="{% url 'add_patient' %}" class="sidebar-link {% if request.resolver_match.url_name == 'add_patient' %}active{% endif %}" title="Add Patient">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Add Patient
+      </a>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'doctor' in request.resolver_match.url_name %}active{% endif %}" title="Doctors" onclick="toggleSubmenu(event, 'doctor-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="16" y1="21" x2="16" y2="15"/><line x1="21" y1="18" x2="15" y2="18"/></svg>
+          Doctors
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'doctor' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="doctor-submenu" class="submenu" style="display: {% if 'doctor' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'doctor_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'doctor_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Doctor List">
+            Doctor List
+          </a>
+          {% if request.user.is_superuser or request.user.role == 'Admin' %}
+          <a href="{% url 'doctor_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'doctor_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Add Doctor">
+            Add Doctor
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' or request.user.role == 'Nurse' or request.user.role == 'Receptionist' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'appointment' in request.resolver_match.url_name %}active{% endif %}" title="Appointments" onclick="toggleSubmenu(event, 'appointment-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Appointments
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'appointment' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="appointment-submenu" class="submenu" style="display: {% if 'appointment' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'appointment_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'appointment_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Appointment List">
+            Appointment List
+          </a>
+          <a href="{% url 'appointment_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'appointment_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Add Appointment">
+            Add Appointment
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' or request.user.role == 'Nurse' or request.user.role == 'Receptionist' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'opd' in request.resolver_match.url_name %}active{% endif %}" title="OPD" onclick="toggleSubmenu(event, 'opd-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          OPD
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'opd' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="opd-submenu" class="submenu" style="display: {% if 'opd' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'opd_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'opd_dashboard' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="OPD Dashboard">
+            OPD Dashboard
+          </a>
+          <a href="{% url 'opd_visit_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'opd_visit_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Safka & Liiska">
+            Safka & Liiska (Queue)
+          </a>
+          <a href="{% url 'opd_visit_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'opd_visit_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Diiwaangeli Bukaan">
+            Diiwaangeli Bukaan (New)
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' or request.user.role == 'Nurse' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'ipd' in request.resolver_match.url_name or 'admission' in request.resolver_match.url_name or 'bed' in request.resolver_match.url_name %}active{% endif %}" title="Inpatients" onclick="toggleSubmenu(event, 'inpatient-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+          Inpatients
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'ipd' in request.resolver_match.url_name or 'admission' in request.resolver_match.url_name or 'bed' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="inpatient-submenu" class="submenu" style="display: {% if 'ipd' in request.resolver_match.url_name or 'admission' in request.resolver_match.url_name or 'bed' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'admission_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admission_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Bukaan-jiif (IPD)">
+            Bukaan-jiif (IPD)
+          </a>
+          <a href="{% url 'bed_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'bed_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Sariiraha (Beds)">
+            Sariiraha (Beds)
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Pharmacist' or request.user.role == 'Doctor' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'pharmacy' in request.resolver_match.url_name or 'medicine' in request.resolver_match.url_name %}active{% endif %}" title="Pharmacy" onclick="toggleSubmenu(event, 'pharmacy-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Pharmacy
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'pharmacy' in request.resolver_match.url_name or 'medicine' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="pharmacy-submenu" class="submenu" style="display: {% if 'pharmacy' in request.resolver_match.url_name or 'medicine' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'medicine_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'medicine_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Daawooyinka">
+            Daawooyinka
+          </a>
+          {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Pharmacist' %}
+          <a href="{% url 'pharmacy_sale_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'pharmacy_sale_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Add Invoice">
+            Add Invoice
+          </a>
+          <a href="{% url 'pharmacy_sale_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'pharmacy_sale_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Invoice List">
+            Invoice List
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Lab Technician' or request.user.role == 'Doctor' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'lab' in request.resolver_match.url_name %}active{% endif %}" title="Laboratory" onclick="toggleSubmenu(event, 'lab-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6M12 15v6M9.5 2 12 6.5 14.5 2"/><path d="M6.5 6.5h11l1 14.5H5.5L6.5 6.5z"/></svg>
+          Laboratory
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'lab' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="lab-submenu" class="submenu" style="display: {% if 'lab' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'lab_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lab_dashboard' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Lab Dashboard">
+            Lab Dashboard
+          </a>
+          <a href="{% url 'lab_request_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lab_request_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Baaritaannada">
+            Baaritaannada (Requests)
+          </a>
+          <a href="{% url 'lab_request_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lab_request_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Dalab Cusub">
+            Dalab Cusub (New Request)
+          </a>
+          <a href="{% url 'lab_result_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lab_result_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Natiijooyinka">
+            Natiijooyinka (Results)
+          </a>
+          <a href="{% url 'lab_test_catalog' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lab_test_catalog' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Liiska Baaritaannada">
+            Liiska Baaritaannada (Catalog)
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Accountant' or request.user.role == 'Receptionist' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'invoice' in request.resolver_match.url_name or 'billing' in request.resolver_match.url_name %}active{% endif %}" title="Billing" onclick="toggleSubmenu(event, 'billing-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'billing' in request.resolver_match.url_name or 'invoice' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="billing-submenu" class="submenu" style="display: {% if 'billing' in request.resolver_match.url_name or 'invoice' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'billing_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'billing_dashboard' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Billing Dashboard">
+            Billing Dashboard
+          </a>
+          <a href="{% url 'invoice_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'invoice_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Liiska Qaansadaha">
+            Liiska Qaansadaha (Invoices)
+          </a>
+          <a href="{% url 'invoice_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'invoice_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Abuur Qaansad Cusub">
+            Abuur Qaansad Cusub
+          </a>
+        </div>
+      </div>
+      <a href="{% url 'payment_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}" title="Payments">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Payments
+      </a>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' or request.user.role == 'Accountant' or request.user.role == 'Pharmacist' or request.user.role == 'Lab Technician' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}" title="Reports" onclick="toggleSubmenu(event, 'reports-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Reports & Analytics
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'report' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="reports-submenu" class="submenu" style="display: {% if 'report' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'reports_hub' %}" class="sidebar-link {% if request.resolver_match.url_name == 'reports_hub' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Warbixinaha Guud">
+            Warbixinaha Guud (Reports Hub)
+          </a>
+          {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Accountant' %}
+          <a href="{% url 'report_financial' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_financial' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Dhaqaalaha & Xisaabta">
+            Dhaqaalaha & Xisaabta (Financial)
+          </a>
+          {% endif %}
+          {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Doctor' %}
+          <a href="{% url 'report_patients' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_patients' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Bukaannada & OPD">
+            Bukaannada (Patients & OPD)
+          </a>
+          {% endif %}
+          {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Lab Technician' or request.user.role == 'Doctor' %}
+          <a href="{% url 'report_laboratory' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_laboratory' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Shaybaarka">
+            Shaybaarka (Laboratory)
+          </a>
+          {% endif %}
+          {% if request.user.is_superuser or request.user.role == 'Admin' or request.user.role == 'Pharmacist' %}
+          <a href="{% url 'report_pharmacy' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_pharmacy' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Farmashiyaha">
+            Farmashiyaha (Pharmacy)
+          </a>
+          {% endif %}
+          {% if request.user.is_superuser or request.user.role == 'Admin' %}
+          <a href="{% url 'report_hr' %}" class="sidebar-link {% if request.resolver_match.url_name == 'report_hr' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Shaqaalaha & HR">
+            Shaqaalaha & HR (Workforce)
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'Admin' %}
+      <div class="nav-item has-submenu">
+        <a href="javascript:void(0);" class="sidebar-link {% if 'hr' in request.resolver_match.url_name or 'staff' in request.resolver_match.url_name or 'attendance' in request.resolver_match.url_name or 'leave' in request.resolver_match.url_name or 'payroll' in request.resolver_match.url_name %}active{% endif %}" title="HR & Staff" onclick="toggleSubmenu(event, 'hr-submenu'); return false;">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          HR & Staff
+          <svg class="submenu-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="margin-left:auto; transition: transform 0.2s; {% if 'hr' in request.resolver_match.url_name or 'staff' in request.resolver_match.url_name or 'attendance' in request.resolver_match.url_name or 'leave' in request.resolver_match.url_name or 'payroll' in request.resolver_match.url_name %}transform: rotate(180deg);{% endif %}"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </a>
+        <div id="hr-submenu" class="submenu" style="display: {% if 'hr' in request.resolver_match.url_name or 'staff' in request.resolver_match.url_name or 'attendance' in request.resolver_match.url_name or 'leave' in request.resolver_match.url_name or 'payroll' in request.resolver_match.url_name %}flex{% else %}none{% endif %}; flex-direction: column; gap: 2px; padding-left: 15px; margin-top: 2px; margin-bottom: 2px; border-left: 2px solid rgba(255,255,255,0.15); margin-left: 20px;">
+          <a href="{% url 'hr_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'hr_dashboard' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="HR Dashboard">
+            HR Dashboard
+          </a>
+          <a href="{% url 'staff_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'staff_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Liiska Shaqaalaha">
+            Liiska Shaqaalaha (Staff Directory)
+          </a>
+          <a href="{% url 'staff_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'staff_create' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Shaqaale Cusub">
+            Diiwaangeli Shaqaale Cusub
+          </a>
+          <a href="{% url 'attendance_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'attendance_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Xaadirka Maalinlaha">
+            Xaadirka (Daily Attendance)
+          </a>
+          <a href="{% url 'leave_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'leave_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Maamulka Fasaxyada">
+            Fasaxyada (Leave Requests)
+          </a>
+          <a href="{% url 'payroll_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" style="padding: 7px 20px; font-size: 13px;" title="Mushahaaraadka">
+            Mushahaaraadka (Payroll)
+          </a>
+        </div>
+      </div>
+      <a href="{% url 'settings_general' %}" class="sidebar-link {% if 'settings' in request.resolver_match.url_name %}active{% endif %}" title="Settings">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </a>
+      <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" title="Users & Roles">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Users & Roles
+      </a>
+      {% endif %}
+     <a href="{% url 'logout' %}" class="sidebar-link" title="Logout" style="margin-top: 10px;">
+    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Logout
+</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <!-- Mobile hamburger -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Fur menu" style="display:flex;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
+        </button>
+
+        <!-- Title -->
+        <span class="topbar-title" style="font-size:20px; font-weight:700;">Dashboard</span>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Notifications -->
+        <a href="#" class="topbar-icon-btn" aria-label="Ogeysiisyada">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          <span class="badge-dot" style="background:#1e3a8a; color:#fff; font-size:9px; border:none; width:14px; height:14px; display:flex; align-items:center; justify-content:center; top:2px; right:2px;">3</span>
+        </a>
+
+        <!-- User Profile -->
+        <div class="sidebar-user" style="padding:0; gap:12px; margin-left:16px;">
+          <div class="sidebar-avatar" style="width:36px; height:36px; background:#1e3a8a; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; border-radius:50%; font-size:14px;">
+            {{ request.user.username|slice:":2"|upper }}
+          </div>
+          <div class="sidebar-user-info" style="display:flex; flex-direction:column;">
+            <div class="sidebar-user-name" style="color:var(--text-primary); font-weight:600;">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="sidebar-user-role" style="color:var(--text-secondary); font-size:12px;">{{ request.user.role|default:"Administrator" }}</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+      {% block content %}
+      <!-- Welcome Banner -->
+      <div class="welcome-banner" style="background-color: var(--primary-light); border: none;">
+        <div class="welcome-text">
+          <h2>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h2>
+          <p>
+            {% if request.user.is_superuser or request.user.role == 'Admin' %}
+            Maamulka Guud: Waxaad halkan ka maamuli kartaa dhamaan howlaha iyo nidaamka isbitaalka (Full System Access).
+            {% elif request.user.role == 'Doctor' %}
+            Portal-ka Dhakhtarka: Arag bukaannadaada, ballamaha maanta, safka OPD, iyo baaritaannada shaybaarka.
+            {% elif request.user.role == 'Nurse' %}
+            Saldhigga Kalkaaliyaha: Maamul sariiraha, bukaan-jiifka (IPD), triage-ka, iyo xaaladaha degdegga ah.
+            {% elif request.user.role == 'Pharmacist' %}
+            Farmashiyaha Isbitaalka: Bixi daawooyinka, hubi kaydka daawada, iyo iibka maanta.
+            {% elif request.user.role == 'Lab Technician' %}
+            Shaybaarka Caafimaadka: Diiwaangeli muunadaha, samee baaritaannada, oo bixi natiijooyinka.
+            {% elif request.user.role == 'Receptionist' %}
+            Qaybta Qaabilaadda: Diiwaangeli bukaannada cusub, qabo ballamaha, oo bixi tigidhada safka OPD.
+            {% elif request.user.role == 'Accountant' %}
+            Xisaabaadka & Maaliyadda: Maamul qaansadaha, qabashada lacagaha, iyo warbixinada dakhliga isbitaalka.
+            {% else %}
+            Here is your hospital dashboard today.
+            {% endif %}
+          </p>
+        </div>
+        <div class="welcome-date" style="background: #ffffff;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <div class="welcome-date-text">
+            <span>{% if today %}{{ today|date:"M d, Y" }}{% else %}Oct 26, 2026{% endif %}</span>
+            <span class="welcome-date-day">{% if today %}{{ today|date:"l" }}{% else %}Monday{% endif %}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Stat Cards ─────────────────────────────────────────── -->
+      <div class="stats-grid">
+
+        <!-- 1. Total Patients (Navy Blue) -->
+        <div class="stat-card stat-navy" style="border-left: 4px solid #1e3a8a;">
+          <div class="stat-card-header">
+            <span class="stat-card-label" style="color: #1e3a8a;">Total Patients</span>
+            <div class="stat-card-icon navy">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value stat-val-navy">{{ stats.total_patients|default:"1,245" }}</div>
+          <div class="stat-card-footer" style="color:#1e3a8a;">
+            <span>+12% from last month</span>
+          </div>
+        </div>
+
+        <!-- 2. Available Doctors (Dark Pink) -->
+        <div class="stat-card stat-dark-pink" style="border-left: 4px solid #be185d;">
+          <div class="stat-card-header">
+            <span class="stat-card-label" style="color: #be185d;">Available Doctors</span>
+            <div class="stat-card-icon dark-pink">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="16" y1="21" x2="16" y2="15"/><line x1="21" y1="18" x2="15" y2="18"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value stat-val-dark-pink">{{ stats.available_doctors|default:"48" }}</div>
+          <div class="stat-card-footer" style="color:#be185d;">
+            <span>{{ stats.doctors_on_leave|default:"4" }} on leave today</span>
+          </div>
+        </div>
+
+        <!-- 3. Total Appointments (Dark Green) -->
+        <div class="stat-card stat-dark-green" style="border-left: 4px solid #15803d;">
+          <div class="stat-card-header">
+            <span class="stat-card-label" style="color: #15803d;">Appointments</span>
+            <div class="stat-card-icon dark-green">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value stat-val-dark-green">{{ stats.appointments|default:"156" }}</div>
+          <div class="stat-card-footer" style="color:#15803d;">
+            <span>{{ stats.appointments_pending|default:"24" }} scheduled</span>
+          </div>
+        </div>
+
+        <!-- 4. New Patients (White Blue) -->
+        <div class="stat-card stat-white-blue" style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7;">
+          <div class="stat-card-header">
+            <span class="stat-card-label" style="color: #0369a1;">New Patients</span>
+            <div class="stat-card-icon white-blue">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value stat-val-white-blue">{{ stats.new_patients|default:"32" }}</div>
+          <div class="stat-card-footer" style="color: #0284c7;">
+            <span>+5% from yesterday</span>
+          </div>
+        </div>
+
+        <!-- 5. Operations (White Purple) -->
+        <div class="stat-card stat-white-purple" style="background: #faf5ff; border: 1px solid #e9d5ff; border-left: 4px solid #9333ea;">
+          <div class="stat-card-header">
+            <span class="stat-card-label" style="color: #7e22ce;">Operations</span>
+            <div class="stat-card-icon white-purple">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value stat-val-white-purple">{{ stats.operations|default:"12" }}</div>
+          <div class="stat-card-footer" style="color:#7e22ce;">
+            <span>Inpatient admissions</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- end stats-grid -->
+
+      <!-- ── Role-Specific Workspace & Quick Access Section ──────────────────────── -->
+      <div class="role-workspace-banner" style="margin-top: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            </div>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: #1e131d; margin: 0;">
+                Qaybta Shaqada: <span style="color: #1e3a8a;">{{ request.user.role|default:"Administrator" }}</span>
+              </h3>
+              <p style="font-size: 12.5px; color: #64748b; margin: 2px 0 0 0;">
+                Kala dooro qaybaha shaqo ee aad awoodda u leedahay inaad maanta isticmaasho.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            {% if request.user.is_superuser or request.user.role == 'Admin' %}
+            <a href="{% url 'user_list' %}" class="btn btn-sm" style="background: #1e3a8a; color: #fff; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12.5px; font-weight: 600;">Maamul Users & Roles</a>
+            <a href="{% url 'settings_general' %}" class="btn btn-sm" style="background: #eff6ff; color: #1e3a8a; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12.5px; font-weight: 600; border: 1px solid #e2e8f0;">Settings</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quick Module Pills based on User Role -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          {% if request.user.is_superuser or request.user.role == 'Admin' %}
+          <a href="{% url 'opd_dashboard' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🩺 OPD Clinic</span>
+            <span style="background: #dbeafe; color: #1e3a8a; padding: 1px 6px; border-radius: 10px; font-size: 11px; font-weight: 700;">{{ dept_stats.opd_today }}</span>
+          </a>
+          <a href="{% url 'lab_dashboard' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🔬 Laboratory</span>
+            <span style="background: #fef3c7; color: #b45309; padding: 1px 6px; border-radius: 10px; font-size: 11px; font-weight: 700;">{{ dept_stats.lab_pending }} pending</span>
+          </a>
+          <a href="{% url 'billing_dashboard' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>💳 Billing & Invoices</span>
+            <span style="background: #fee2e2; color: #dc2626; padding: 1px 6px; border-radius: 10px; font-size: 11px; font-weight: 700;">{{ dept_stats.unpaid_invoices }} unpaid</span>
+          </a>
+          <a href="{% url 'medicine_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>💊 Pharmacy Stock</span>
+          </a>
+          <a href="{% url 'hr_dashboard' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>👥 HR & Staff ({{ dept_stats.staff_count }})</span>
+          </a>
+          <a href="{% url 'reports_hub' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📊 Reports & Analytics</span>
+          </a>
+          {% elif request.user.role == 'Doctor' %}
+          <a href="{% url 'opd_dashboard' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>🩺 Safka Bukaanada OPD</span>
+          </a>
+          <a href="{% url 'appointment_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📅 Ballamaha Maanta</span>
+          </a>
+          <a href="{% url 'lab_request_create' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🔬 Dalbo Shaybaar Cusub</span>
+          </a>
+          <a href="{% url 'admission_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🛏️ Bukaan-jiifka (IPD)</span>
+          </a>
+          {% elif request.user.role == 'Nurse' %}
+          <a href="{% url 'bed_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>🛏️ Sariiraha Isbitaalka (Beds)</span>
+          </a>
+          <a href="{% url 'admission_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🏥 Bukaan-jiifka (IPD)</span>
+          </a>
+          <a href="{% url 'opd_visit_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📋 Triage & Cabirka Vital Signs</span>
+          </a>
+          {% elif request.user.role == 'Pharmacist' %}
+          <a href="{% url 'pharmacy_sale_create' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>💊 Bixi Daawo (New Invoice)</span>
+          </a>
+          <a href="{% url 'medicine_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📦 Kaydka Daawooyinka</span>
+          </a>
+          <a href="{% url 'pharmacy_sale_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🧾 Liiska Iibka Farmashiyaha</span>
+          </a>
+          {% elif request.user.role == 'Lab Technician' %}
+          <a href="{% url 'lab_request_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>🔬 Dalabaadka Shaybaarka</span>
+          </a>
+          <a href="{% url 'lab_result_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📋 Natiijooyinka (Results)</span>
+          </a>
+          <a href="{% url 'lab_test_catalog' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📑 Buugga Baaritaannada (Catalog)</span>
+          </a>
+          {% elif request.user.role == 'Receptionist' %}
+          <a href="{% url 'add_patient' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>👤 Diiwaangeli Bukaan Cusub</span>
+          </a>
+          <a href="{% url 'appointment_create' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📅 Qabo Ballan Cusub</span>
+          </a>
+          <a href="{% url 'opd_visit_create' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🎫 Fur Booqasho OPD</span>
+          </a>
+          <a href="{% url 'invoice_create' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>🧾 Abuur Qaansad</span>
+          </a>
+          {% elif request.user.role == 'Accountant' %}
+          <a href="{% url 'invoice_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #eff6ff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e3a8a; font-size: 13px; font-weight: 600;">
+            <span>🧾 Qaansadaha (Invoices)</span>
+          </a>
+          <a href="{% url 'payment_list' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>💵 Diiwaanka Lacagaha (Payments)</span>
+          </a>
+          <a href="{% url 'report_financial' %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fdfafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #334155; font-size: 13px; font-weight: 500;">
+            <span>📊 Warbixinta Maaliyadda</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+
+      <!-- ── Charts Section ─────────────────────────────────── -->
+      <div class="two-col-grid" style="margin-top: 24px;">
+        <div class="card col-wide">
+          <div class="card-header">
+            <div class="card-title">Patient Statistics</div>
+            <select class="btn btn-ghost btn-sm" style="background:#f1f5f9;border:1px solid #e2e8f0;padding:4px 8px;border-radius:6px;font-size:12px;">
+              <option>This Week</option>
+              <option>This Month</option>
+              <option>This Year</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <canvas id="patientChart" style="width: 100%; height: 250px;"></canvas>
+          </div>
+        </div>
+
+        <div class="card col-narrow">
+          <div class="card-header">
+            <div class="card-title">Department Performance</div>
+          </div>
+          <div class="card-body" style="display:flex; justify-content:center; align-items:center;">
+            <canvas id="deptChart" style="width: 100%; height: 250px;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tables Section ─────────────────────────────────── -->
+      <div class="two-col-grid" style="margin-top: 24px; grid-template-columns: 1fr 1fr;">
+        <!-- Recent Appointments Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Appointments</div>
+            <a href="#" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Sarah Johnson</td>
+                    <td>Dr. Michael Lee</td>
+                    <td>Cardiology</td>
+                    <td><span class="badge badge-green" style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">Confirmed</span></td>
+                  </tr>
+                  <tr>
+                    <td>James Smith</td>
+                    <td>Dr. Sarah Davis</td>
+                    <td>Neurology</td>
+                    <td><span class="badge badge-amber" style="background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span></td>
+                  </tr>
+                  <tr>
+                    <td>Emily Brown</td>
+                    <td>Dr. Robert Wilson</td>
+                    <td>Orthopedics</td>
+                    <td><span class="badge" style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">Cancelled</span></td>
+                  </tr>
+                  <tr>
+                    <td>Michael Davis</td>
+                    <td>Dr. Emily Chen</td>
+                    <td>Pediatrics</td>
+                    <td><span class="badge badge-green" style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">Confirmed</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Patients -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Patients</div>
+            <a href="#" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Patient Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Blood Group</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="display:flex;align-items:center;gap:10px;">
+                      <img src="https://i.pravatar.cc/150?img=1" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                      William Taylor
+                    </td>
+                    <td>45</td>
+                    <td>Male</td>
+                    <td><span style="font-weight:600;color:var(--accent-rose);">O+</span></td>
+                  </tr>
+                  <tr>
+                    <td style="display:flex;align-items:center;gap:10px;">
+                      <img src="https://i.pravatar.cc/150?img=5" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                      Olivia Anderson
+                    </td>
+                    <td>32</td>
+                    <td>Female</td>
+                    <td><span style="font-weight:600;color:var(--accent-rose);">A-</span></td>
+                  </tr>
+                  <tr>
+                    <td style="display:flex;align-items:center;gap:10px;">
+                      <img src="https://i.pravatar.cc/150?img=11" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                      Benjamin Thomas
+                    </td>
+                    <td>28</td>
+                    <td>Male</td>
+                    <td><span style="font-weight:600;color:var(--accent-rose);">B+</span></td>
+                  </tr>
+                  <tr>
+                    <td style="display:flex;align-items:center;gap:10px;">
+                      <img src="https://i.pravatar.cc/150?img=9" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                      Sophia Jackson
+                    </td>
+                    <td>54</td>
+                    <td>Female</td>
+                    <td><span style="font-weight:600;color:var(--accent-rose);">AB+</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      {% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function toggleSubmenu(e, submenuId) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const submenu = document.getElementById(submenuId);
+  if (!submenu) return false;
+
+  const link = e ? e.currentTarget : null;
+  const chevron = link ? link.querySelector('.submenu-chevron') : null;
+  const isOpen = (submenu.style.display === 'flex' || window.getComputedStyle(submenu).display === 'flex');
+
+  if (isOpen) {
+    submenu.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  } else {
+    submenu.style.display = 'flex';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  }
+
+  // Preserve scroll position so the user stays in place
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sessionStorage.setItem('sidebar_scroll_pos', sidebar.scrollTop);
+  }
+
+  return false;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    // Keep scroll position saved as user scrolls
+    sidebar.addEventListener('scroll', function() {
+      sessionStorage.setItem('sidebar_scroll_pos', sidebar.scrollTop);
+    }, { passive: true });
+
+    // Restore scroll position so sidebar never jumps back to Dashboard
+    const savedPos = sessionStorage.getItem('sidebar_scroll_pos');
+    if (savedPos !== null) {
+      sidebar.scrollTop = parseInt(savedPos, 10);
+    } else {
+      const activeLink = sidebar.querySelector('.sidebar-link.active');
+      if (activeLink) {
+        activeLink.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }
+
+  // Chart initialization with null checks so other pages don't crash
+  const patientCanvas = document.getElementById('patientChart');
+  if (patientCanvas && typeof Chart !== 'undefined') {
+    const ctxPatient = patientCanvas.getContext('2d');
+    new Chart(ctxPatient, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Inpatients',
+          data: [65, 59, 80, 81, 56, 55, 40],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        }, {
+          label: 'Outpatients',
+          data: [28, 48, 40, 19, 86, 27, 90],
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  const deptCanvas = document.getElementById('deptChart');
+  if (deptCanvas && typeof Chart !== 'undefined') {
+    const ctxDept = deptCanvas.getContext('2d');
+    new Chart(ctxDept, {
+      type: 'doughnut',
+      data: {
+        labels: ['Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics'],
+        datasets: [{
+          data: [35, 20, 25, 20],
+          backgroundColor: ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        cutout: '70%'
+      }
+    });
+  }
+});
+</script>
+{% block extra_js %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

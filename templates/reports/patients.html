@@ -1,0 +1,315 @@
+{% extends 'reports/base.html' %}
+
+{% block report_content %}
+<div class="page-content">
+    <!-- Official Print Header -->
+    <div class="print-official-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-primary" style="font-family: 'Fraunces', serif;">MEDICARE GENERAL HOSPITAL</h3>
+                <div class="small text-muted">Qaybta Bukaannada & Adeegyada Caafimaadka (Clinical & Outpatient Services)</div>
+                <div class="fw-bold text-dark fs-5 mt-1">WARBIXINTA BUKAANNADA & BOOQASHOOYINKA (PATIENT CLINICAL REPORT)</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-dark">{{ period_label }}</div>
+                <div class="small text-muted">Taariikhda: {% now 'd M Y, H:i' %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'reports_hub' %}">Reports Hub</a>
+                <span>/</span>
+                <span class="active">Bukaannada & OPD</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Warbixinta Bukaannada & Adeegyada Caafimaadka</h2>
+            <p class="text-muted small mb-0">Tirakoobka diiwaangelinta, booqashooyinka OPD, cudurrada la baaray, iyo jiifka isbitaalka.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 fw-semibold">
+                <span class="material-symbols-outlined fs-5">print</span> Daabac Warbixinta (Print / PDF)
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Pills -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{% url 'reports_hub' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">analytics</span> Warbixinta Guud (Hub)
+        </a>
+        <a href="{% url 'report_financial' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">account_balance_wallet</span> Dhaqaalaha & Xisaabta
+        </a>
+        <a href="{% url 'report_patients' %}" class="report-nav-pill active">
+            <span class="material-symbols-outlined fs-5">personal_injury</span> Bukaannada & OPD
+        </a>
+        <a href="{% url 'report_laboratory' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">biotech</span> Shaybaarka (Lab)
+        </a>
+        <a href="{% url 'report_pharmacy' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">medication</span> Farmashiyaha
+        </a>
+        <a href="{% url 'report_hr' %}" class="report-nav-pill">
+            <span class="material-symbols-outlined fs-5">badge</span> Shaqaalaha & HR
+        </a>
+    </div>
+
+    <!-- Date Filter Bar -->
+    <div class="date-filter-bar mb-4">
+        <form method="GET" action="{% url 'report_patients' %}" class="row g-2 align-items-center">
+            <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary fs-5">calendar_today</span>
+                <span class="small fw-bold text-slate-700">Muddada:</span>
+            </div>
+            <div class="col-12 col-md-auto d-flex flex-wrap gap-1">
+                <a href="?period=today" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Maanta</a>
+                <a href="?period=this_week" class="btn btn-sm {% if period == 'this_week' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Toddobaadkan</a>
+                <a href="?period=this_month" class="btn btn-sm {% if period == 'this_month' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Bishan</a>
+                <a href="?period=this_year" class="btn btn-sm {% if period == 'this_year' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-3">Sanadkan</a>
+            </div>
+            <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2 mt-2 mt-md-0">
+                <input type="hidden" name="period" value="custom">
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ka</span>
+                    <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <div class="input-group input-group-sm" style="max-width: 160px;">
+                    <span class="input-group-text bg-white small">Ilaa</span>
+                    <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Codso
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badge Info -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 small fw-semibold">
+            Muddada: {{ period_label }}
+        </span>
+    </div>
+
+    <!-- Patient Workload KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">person_add</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Bukaanno Cusub (Period)</div>
+                    <div class="report-kpi-val text-primary">{{ new_patients_count }}</div>
+                    <div class="small text-muted mt-1">{{ total_patients_all }} guud ahaan diiwaanka ku jira</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">stethoscope</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Booqashooyinka OPD</div>
+                    <div class="report-kpi-val text-success">{{ total_visits }}</div>
+                    <div class="small text-muted mt-1">{{ total_consultations }} baaritaan dhameystiran</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fdf2f8; color: #db2777;">
+                    <span class="material-symbols-outlined fs-2">hotel</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Bukaan-Jiifka (Admissions)</div>
+                    <div class="report-kpi-val text-dark">{{ total_admissions }}</div>
+                    <div class="small text-muted mt-1">{{ active_admitted }} hadda jiifa | {{ discharges_in_period }} la fasaxay</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="report-kpi-card">
+                <div class="report-kpi-icon" style="background: #fffbeb; color: #d97706;">
+                    <span class="material-symbols-outlined fs-2">single_bed</span>
+                </div>
+                <div>
+                    <div class="report-kpi-label">Sariiraha Isbitaalka</div>
+                    <div class="report-kpi-val text-warning">{{ occupied_beds }} / {{ total_beds }}</div>
+                    <div class="small text-success mt-1 fw-bold">{{ available_beds }} sariirood oo banaan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demographics & OPD Visits Breakdown -->
+    <div class="row g-4 mb-4">
+        <!-- Demographics -->
+        <div class="col-12 col-lg-5">
+            <div class="hms-card h-100">
+                <h5 class="fw-bold text-slate-800 mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">groups</span>
+                    Dad-weynaha & Da'da Bukaannada
+                </h5>
+                <div class="mb-4">
+                    <label class="small text-muted fw-bold mb-2">Qeybinta Jinsiga (Gender Distribution):</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 flex-fill text-center border" style="background: #eff6ff;">
+                            <div class="fs-4 fw-bold text-primary">{{ male_count }}</div>
+                            <div class="small text-muted">Lab (Male)</div>
+                        </div>
+                        <div class="p-3 rounded-3 flex-fill text-center border" style="background: #fdf2f8;">
+                            <div class="fs-4 fw-bold text-danger">{{ female_count }}</div>
+                            <div class="small text-muted">Dhedig (Female)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="small text-muted fw-bold mb-2">Kooxaha Da'da (Age Groups):</label>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between p-2 rounded bg-light border">
+                            <span>Carruurta (&lt; 18 sano)</span>
+                            <span class="fw-bold">{{ pediatric_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between p-2 rounded bg-light border">
+                            <span>Dhalinyarada (18 - 35 sano)</span>
+                            <span class="fw-bold">{{ young_adult_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between p-2 rounded bg-light border">
+                            <span>Dhex-dhexaad (36 - 55 sano)</span>
+                            <span class="fw-bold">{{ middle_age_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between p-2 rounded bg-light border">
+                            <span>Waayeelka (56+ sano)</span>
+                            <span class="fw-bold">{{ elderly_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OPD Visit Types & Statuses -->
+        <div class="col-12 col-lg-7">
+            <div class="hms-card h-100">
+                <h5 class="fw-bold text-slate-800 mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">stethoscope</span>
+                    Noocyada Booqashada OPD & Xaaladaha
+                </h5>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="small text-muted fw-bold mb-2">Nooca Booqashada (Visit Types):</label>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                            {% for vt in visit_type_stats %}
+                            <li class="d-flex justify-content-between p-2 rounded bg-light border">
+                                <span>{{ vt.visit_type }}</span>
+                                <span class="badge bg-primary rounded-pill px-2 py-1">{{ vt.count }}</span>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center py-2">Ma jiraan booqashooyin.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <label class="small text-muted fw-bold mb-2">Xaaladda Booqashada (Status):</label>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                            {% for vs in visit_status_stats %}
+                            <li class="d-flex justify-content-between p-2 rounded bg-light border">
+                                <span>{{ vs.status }}</span>
+                                <span class="badge bg-secondary rounded-pill px-2 py-1">{{ vs.count }}</span>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center py-2">Ma jiraan booqashooyin.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="small text-muted fw-bold mb-2">Go'aamada Dhakhtarka (Disposition / Outcome):</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for o in outcomes_stats %}
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                            {{ o.outcome|default:"Talo Guud" }}: <strong>{{ o.count }}</strong>
+                        </span>
+                        {% empty %}
+                        <span class="text-muted small">Wali ma jiraan baaritaanno go'aan la gaaray.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Diagnoses in Period -->
+    <div class="hms-card mb-4">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-slate-800 mb-1">
+                    <span class="material-symbols-outlined align-middle me-1 text-danger">coronavirus</span>
+                    Cudurrada Ugu Badan ee Laga Helay Bukaannada (Top Diagnoses)
+                </h5>
+                <p class="text-muted small mb-0">Cudurrada dhaqaatiirta OPD u aqoonsadeen bukaannada muddadan.</p>
+            </div>
+        </div>
+
+        {% if top_diagnoses %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Cudurka / Baaritaanka (Diagnosis)</th>
+                        <th class="text-end">Tirada Bukaannada Laga Helay</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in top_diagnoses %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ d.diagnosis }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fs-6 fw-bold">
+                                {{ d.count }} bukaan
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">Ma jiraan xog cudurro ah oo la diiwaangeliyay muddadan.</p>
+        {% endif %}
+    </div>
+
+    <!-- Print Signatures Section -->
+    <div class="d-none d-print-block mt-5 pt-4">
+        <div class="d-flex justify-content-between text-center">
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Madaxa OPD (OPD In-Charge)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Madaxa Kalkaaliyayaasha (Chief Nurse)
+                </div>
+            </div>
+            <div style="width: 220px;">
+                <div style="border-top: 1px solid #333; padding-top: 6px; font-size: 13px; font-weight: bold;">
+                    Agaasimaha Caafimaadka (Medical Director)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+﻿{% extends 'billing/base.html' %}
+{% load static %}
+
+{% block title %}Abuur Qaansad Cusub (New Invoice) — MediCare HMS{% endblock %}
+
+{% block billing_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'billing_dashboard' %}"><span class="material-symbols-outlined fs-6">account_balance_wallet</span> Billing</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Abuur Qaansad Cusub</span>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Abuur Qaansad Cusub (Create Hospital Invoice)</h3>
+        <p class="text-muted small mb-0">Dooro bukaanka, geli adeegyada loo qabtay, qiimahooda, iyo xisaabinta lacagta.</p>
+    </div>
+    <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Liiska
+    </a>
+</div>
+
+<form method="post" id="invoiceForm">
+    {% csrf_token %}
+    <div class="row g-4">
+        <!-- Left: Patient & Invoice Details -->
+        <div class="col-lg-4">
+            <div class="hms-card mb-4">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                    Xogta Bukaanka & Qaansada
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Bukaanka (Patient) *</label>
+                    {{ form.patient }}
+                    {% if form.patient.errors %}<div class="text-danger small">{{ form.patient.errors }}</div>{% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Dhakhtarka (Attending Doctor)</label>
+                    {{ form.doctor }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Taariikhda Lacag-bixinta (Due Date)</label>
+                    {{ form.due_date }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Habka Lacag-bixinta (Payment Method)</label>
+                    {{ form.payment_method }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Xusuusin / Faahfaahin (Notes)</label>
+                    {{ form.notes }}
+                </div>
+            </div>
+
+            <!-- Financial Calculation Summary Card -->
+            <div class="hms-card" style="background: #f8fafc; border: 2px dashed #cbd5e1;">
+                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                    <span class="material-symbols-outlined text-success">calculate</span>
+                    Xisaabinta Guud (Summary)
+                </h6>
+
+                <div class="d-flex justify-content-between small text-secondary mb-2">
+                    <span>Wadarta Adeegyada (Subtotal):</span>
+                    <strong class="text-dark" id="displaySubtotal">$0.00</strong>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Discount ($)</label>
+                        {{ form.discount }}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Tax ($)</label>
+                        {{ form.tax }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-3">
+                    <span class="fw-bold text-dark fs-5">Wadarta Guud:</span>
+                    <span class="fw-bold text-primary fs-3" id="displayGrandTotal">$0.00</span>
+                </div>
+
+                <!-- Immediate Payment Option -->
+                <div class="p-2.5 rounded bg-white border mb-3">
+                    <label class="form-label small fw-semibold text-dark mb-1">Lacag Hadda La Qabtay (Optional)</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" name="initial_paid" id="initialPaidInput" step="0.5" value="0.00" class="form-control form-control-sm" placeholder="Cadadka $">
+                        </div>
+                        <div class="col-6">
+                            <input type="text" name="initial_ref" class="form-control form-control-sm" placeholder="Ref / TXID">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: #1e3a8a; border-color: #1e3a8a;">
+                    <span class="material-symbols-outlined fs-5">check_circle</span>
+                    Xaqiiji & Abuur Qaansada
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Dynamic Line Items Builder -->
+        <div class="col-lg-8">
+            <div class="hms-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">list_alt</span>
+                            Adeegyada Isbitaalka (Hospital Line Items)
+                        </h5>
+                        <span class="text-muted small">Geli adeeg kasta oo bukaanka loo qabtay iyo qiimihiisa</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" id="addRowBtn">
+                        <span class="material-symbols-outlined fs-6">add</span> Ku dar Adeeg
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table-custom" id="itemsTable">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="width: 25%;">Qaybta Adeegga</th>
+                                <th style="width: 35%;">Faahfaahinta Adeegga *</th>
+                                <th style="width: 12%;">Tirada</th>
+                                <th style="width: 15%;">Qiimaha ($)</th>
+                                <th style="width: 8%;" class="text-end">Total</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <tr class="item-row">
+                                <td>
+                                    <select name="service_type[]" class="form-select form-select-sm">
+                                        <option value="Consultation">Consultation (OPD)</option>
+                                        <option value="Laboratory">Laboratory (Shaybaar)</option>
+                                        <option value="Pharmacy">Pharmacy (Daawo)</option>
+                                        <option value="Inpatient / Bed">Inpatient / Bed (Jiif)</option>
+                                        <option value="Surgery">Surgery (Qalliin)</option>
+                                        <option value="Nursing Care">Nursing Care</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="item_desc[]" class="form-control form-control-sm item-desc" placeholder="Tusaale: Doctor Consultation Fee" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="item_qty[]" class="form-control form-control-sm item-qty text-center" value="1" min="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="item_price[]" step="0.5" class="form-control form-control-sm item-price" placeholder="0.00" required>
+                                </td>
+                                <td class="text-end fw-bold text-dark item-line-total">$0.00</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm text-danger remove-row-btn p-0"><span class="material-symbols-outlined fs-6">delete</span></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Fast Preset Service Templates -->
+                <div class="mt-4 pt-3 border-top">
+                    <span class="small fw-semibold text-secondary d-block mb-2">Adeegyo Degdeg Ah (Quick Presets):</span>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-light border preset-btn" data-service="Consultation" data-desc="Doctor Consultation (General OPD)" data-price="10.00">
+                            + OPD Consultation ($10)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border preset-btn" data-service="Laboratory" data-desc="Complete Blood Count (CBC)" data-price="15.00">
+                            + CBC Test ($15)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border preset-btn" data-service="Laboratory" data-desc="Malaria & Widal Panel" data-price="13.00">
+                            + Malaria & Widal ($13)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border preset-btn" data-service="Inpatient / Bed" data-desc="General Ward Admission (1 Night)" data-price="25.00">
+                            + General Ward Night ($25)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border preset-btn" data-service="Pharmacy" data-desc="Prescription Medications" data-price="20.00">
+                            + Pharmacy Medications ($20)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block billing_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tbody = document.getElementById("itemsTableBody");
+    const addRowBtn = document.getElementById("addRowBtn");
+    const discountInput = document.getElementById("id_discount");
+    const taxInput = document.getElementById("id_tax");
+    const displaySubtotal = document.getElementById("displaySubtotal");
+    const displayGrandTotal = document.getElementById("displayGrandTotal");
+    const initialPaidInput = document.getElementById("initialPaidInput");
+
+    function calculateTotals() {
+        let subtotal = 0.0;
+        document.querySelectorAll(".item-row").forEach(row => {
+            const qty = parseFloat(row.querySelector(".item-qty").value) || 0;
+            const price = parseFloat(row.querySelector(".item-price").value) || 0;
+            const total = qty * price;
+            row.querySelector(".item-line-total").textContent = "$" + total.toFixed(2);
+            subtotal += total;
+        });
+
+        displaySubtotal.textContent = "$" + subtotal.toFixed(2);
+
+        const discount = parseFloat(discountInput.value) || 0.0;
+        const tax = parseFloat(taxInput.value) || 0.0;
+        const grandTotal = Math.max(0, subtotal - discount + tax);
+
+        displayGrandTotal.textContent = "$" + grandTotal.toFixed(2);
+    }
+
+    function addRow(service = "Consultation", desc = "", price = "") {
+        const tr = document.createElement("tr");
+        tr.className = "item-row";
+        tr.innerHTML = `
+            <td>
+                <select name="service_type[]" class="form-select form-select-sm">
+                    <option value="Consultation" ${service === 'Consultation' ? 'selected' : ''}>Consultation (OPD)</option>
+                    <option value="Laboratory" ${service === 'Laboratory' ? 'selected' : ''}>Laboratory (Shaybaar)</option>
+                    <option value="Pharmacy" ${service === 'Pharmacy' ? 'selected' : ''}>Pharmacy (Daawo)</option>
+                    <option value="Inpatient / Bed" ${service === 'Inpatient / Bed' ? 'selected' : ''}>Inpatient / Bed (Jiif)</option>
+                    <option value="Surgery" ${service === 'Surgery' ? 'selected' : ''}>Surgery (Qalliin)</option>
+                    <option value="Nursing Care" ${service === 'Nursing Care' ? 'selected' : ''}>Nursing Care</option>
+                    <option value="Other" ${service === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="item_desc[]" value="${desc}" class="form-control form-control-sm item-desc" placeholder="Faahfaahinta..." required>
+            </td>
+            <td>
+                <input type="number" name="item_qty[]" class="form-control form-control-sm item-qty text-center" value="1" min="1" required>
+            </td>
+            <td>
+                <input type="number" name="item_price[]" value="${price}" step="0.5" class="form-control form-control-sm item-price" placeholder="0.00" required>
+            </td>
+            <td class="text-end fw-bold text-dark item-line-total">$0.00</td>
+            <td>
+                <button type="button" class="btn btn-sm text-danger remove-row-btn p-0"><span class="material-symbols-outlined fs-6">delete</span></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        bindRowEvents(tr);
+        calculateTotals();
+    }
+
+    function bindRowEvents(row) {
+        row.querySelector(".item-qty").addEventListener("input", calculateTotals);
+        row.querySelector(".item-price").addEventListener("input", calculateTotals);
+        row.querySelector(".remove-row-btn").addEventListener("click", function() {
+            if (document.querySelectorAll(".item-row").length > 1) {
+                row.remove();
+                calculateTotals();
+            }
+        });
+    }
+
+    document.querySelectorAll(".item-row").forEach(bindRowEvents);
+
+    addRowBtn.addEventListener("click", () => addRow());
+
+    discountInput.addEventListener("input", calculateTotals);
+    taxInput.addEventListener("input", calculateTotals);
+
+    // Preset Buttons
+    document.querySelectorAll(".preset-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            addRow(this.dataset.service, this.dataset.desc, this.dataset.price);
+        });
+    });
+
+    calculateTotals();
+});
+</script>
+{% endblock %}
+

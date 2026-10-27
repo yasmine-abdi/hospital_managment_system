@@ -1,0 +1,234 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Diiwaangeli Baaritaan Cusub — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Dalab Baaritaan Cusub</span>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Diiwaangeli Dalab Baaritaan Cusub</h3>
+        <p class="text-muted small mb-0">Dooro bukaanka, dhakhtarka dalbay, iyo baaritaannada loo baahan yahay in lagu sameeyo.</p>
+    </div>
+    <a href="{% url 'lab_request_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo Liiska
+    </a>
+</div>
+
+<form method="post" id="labOrderForm">
+    {% csrf_token %}
+    <div class="row g-4">
+        <!-- Left: Patient & Clinical Info -->
+        <div class="col-lg-5">
+            <div class="hms-card mb-4">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                    Xogta Bukaanka & Dalabka
+                </h5>
+
+                <!-- Patient Field -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-semibold text-secondary small mb-0">Bukaanka (Patient) *</label>
+                        <a href="{% url 'add_patient' %}" target="_blank" class="text-primary small text-decoration-none d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined fs-6">person_add</span> Ku dar bukaan cusub
+                        </a>
+                    </div>
+                    {{ form.patient }}
+                    {% if form.patient.errors %}
+                        <div class="text-danger small mt-1">{{ form.patient.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Doctor Field -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-secondary small">Dhakhtarka Dalbay (Ordering Doctor)</label>
+                    {{ form.doctor }}
+                    {% if form.doctor.errors %}
+                        <div class="text-danger small mt-1">{{ form.doctor.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Priority & Payment Status -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary small">Heerka Degdegga (Priority)</label>
+                        {{ form.priority }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary small">Lacag Bixinta (Payment)</label>
+                        {{ form.payment_status }}
+                    </div>
+                </div>
+
+                <!-- Clinical Notes -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-secondary small">Calaamadaha / Sababta Baaritaanka (Clinical Notes)</label>
+                    {{ form.clinical_notes }}
+                </div>
+            </div>
+
+            <!-- Order Summary Card -->
+            <div class="hms-card" style="background: #f8fafc; border: 2px dashed #cbd5e1;">
+                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-success">receipt_long</span>
+                    Xisaabinta Dalabka (Order Summary)
+                </h6>
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span>Baaritaannada la doortay:</span>
+                    <strong class="text-dark" id="selectedCount">0 Baaritaan</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <span class="fw-bold text-dark fs-5">Wadarta Qiimaha:</span>
+                    <span class="fw-bold text-primary fs-3" id="totalPriceDisplay">$0.00</span>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        <span class="material-symbols-outlined fs-5">check_circle</span>
+                        Xaqiiji & Diiwaangeli Dalabka
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Test Selection Catalog -->
+        <div class="col-lg-7">
+            <div class="hms-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">format_list_bulleted</span>
+                            Dooro Baaritaannada (Select Tests)
+                        </h5>
+                        <span class="text-muted small">Calaamadee baaritaannada uu bukaanku u baahan yahay</span>
+                    </div>
+                    <div class="input-group" style="max-width: 240px;">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <span class="material-symbols-outlined fs-6">search</span>
+                        </span>
+                        <input type="text" id="testSearchInput" class="form-control form-control-sm border-start-0" placeholder="Kala shaandhee baaritaan...">
+                    </div>
+                </div>
+
+                {% if form.tests.errors %}
+                    <div class="alert alert-danger py-2 small d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-5">error</span>
+                        Fadlan dooro ugu yaraan hal baaritaan.
+                    </div>
+                {% endif %}
+
+                <!-- Accordion of categories -->
+                <div class="accordion accordion-flush" id="testCategoriesAccordion">
+                    {% for cat in categories %}
+                    <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
+                        <h2 class="accordion-header" id="heading-{{ cat.id }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ cat.id }}">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">{{ cat.icon|default:'science' }}</span>
+                                    <strong class="text-dark">{{ cat.name }}</strong>
+                                    <span class="badge bg-light text-secondary border ms-2" style="font-size: 11px;">{{ cat.tests.count }} Tests</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse-{{ cat.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#testCategoriesAccordion">
+                            <div class="accordion-body p-3">
+                                <div class="row g-2">
+                                    {% for test in cat.tests.all %}
+                                    <div class="col-md-6 test-item-container">
+                                        <label class="card h-100 p-2.5 border rounded-3 test-card d-flex flex-row align-items-start gap-2.5 cursor-pointer user-select-none shadow-sm" style="cursor: pointer; transition: all 0.15s ease;">
+                                            <input type="checkbox" name="tests" value="{{ test.id }}" data-price="{{ test.price }}" class="form-check-input test-checkbox mt-1 flex-shrink-0" id="test_{{ test.id }}">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <span class="fw-bold text-dark small test-title">{{ test.name }}</span>
+                                                    <span class="badge bg-primary-subtle text-primary fw-bold ms-1" style="font-size: 11px;">${{ test.price }}</span>
+                                                </div>
+                                                <div class="text-muted" style="font-size: 11px;">
+                                                    <span class="fw-semibold">{{ test.code }}</span> • {{ test.sample_type }} • {{ test.turnaround_time }}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12 text-muted small py-2">Qaybtaan ma laha baaritaanno wali.</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block lab_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const checkboxes = document.querySelectorAll(".test-checkbox");
+    const selectedCount = document.getElementById("selectedCount");
+    const totalPriceDisplay = document.getElementById("totalPriceDisplay");
+    const searchInput = document.getElementById("testSearchInput");
+
+    function updateSummary() {
+        let count = 0;
+        let total = 0.0;
+        checkboxes.forEach(cb => {
+            const card = cb.closest(".test-card");
+            if (cb.checked) {
+                count++;
+                total += parseFloat(cb.dataset.price || 0);
+                if (card) {
+                    card.style.borderColor = "#1e3a8a";
+                    card.style.background = "#eff6ff";
+                }
+            } else {
+                if (card) {
+                    card.style.borderColor = "#e2e8f0";
+                    card.style.background = "#ffffff";
+                }
+            }
+        });
+        selectedCount.textContent = count + " Baaritaan";
+        totalPriceDisplay.textContent = "$" + total.toFixed(2);
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener("change", updateSummary);
+    });
+
+    // Test Search filter
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            const query = this.value.toLowerCase().trim();
+            document.querySelectorAll(".test-item-container").forEach(container => {
+                const text = container.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    container.style.display = "";
+                } else {
+                    container.style.display = "none";
+                }
+            });
+            // Auto open all accordions when searching
+            if (query.length > 0) {
+                document.querySelectorAll(".accordion-collapse").forEach(acc => {
+                    acc.classList.add("show");
+                });
+            }
+        });
+    }
+
+    updateSummary();
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,86 @@
+﻿{% extends 'opd/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} — MediCare HMS{% endblock %}
+
+{% block opd_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'opd_dashboard' %}"><span class="material-symbols-outlined fs-6">stethoscope</span> OPD</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">{{ title }}</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="hms-card">
+            <div class="hms-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">person_add</span>
+                        {{ title }}
+                    </h5>
+                    <span class="text-muted small">Diiwaangeli imaatinka bukaanka ee maanta si uu u galo safka OPD (Queue)</span>
+                </div>
+                <a href="{% url 'opd_visit_list' %}" class="btn btn-sm btn-outline-secondary">Ka Noqo</a>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <!-- Patient Select -->
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-semibold text-secondary mb-0">Bukaanka (Patient) *</label>
+                            <a href="{% url 'add_patient' %}" target="_blank" class="small text-primary d-flex align-items-center gap-1 text-decoration-none">
+                                <span class="material-symbols-outlined fs-6">add</span> Bukaankaan ma diiwaangashana? Ku dar
+                            </a>
+                        </div>
+                        {{ form.patient }}
+                        {% if form.patient.errors %}<div class="text-danger small">{{ form.patient.errors }}</div>{% endif %}
+                    </div>
+
+                    <!-- Doctor & Department -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Dhakhtarka (Consulting Doctor)</label>
+                        {{ form.doctor }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-secondary">Qaybta (OPD Department)</label>
+                        {{ form.department }}
+                    </div>
+
+                    <!-- Visit Type & Fee -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary">Nooca Booqashada (Visit Type)</label>
+                        {{ form.visit_type }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary">Qidmada / Fee ($)</label>
+                        {{ form.consultation_fee }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary">Lacag Bixinta (Payment)</label>
+                        {{ form.payment_status }}
+                    </div>
+                </div>
+
+                <div class="alert alert-info py-2.5 px-3 rounded-3 small d-flex align-items-center gap-2 mt-4">
+                    <span class="material-symbols-outlined fs-5">info</span>
+                    <span>Marka aad keydiso, bukaanka waxaa si toos ah loo siin doonaa <strong>Token Number</strong> iyo <strong>Visit ID</strong>, waxaana toos loogu wareejin doonaa shaashadda cabbirka <strong>Vitals-ka (Triage)</strong>.</span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                    <a href="{% url 'opd_visit_list' %}" class="btn btn-outline-secondary">Ka Noqo</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm d-flex align-items-center gap-1" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        <span class="material-symbols-outlined fs-5">save</span>
+                        Xaqiiji & Diiwaangeli Safka
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

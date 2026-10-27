@@ -1,0 +1,132 @@
+{% extends 'users/base.html' %}
+
+{% block title %}{% if is_edit %}Wax ka bedel User: {{ user_obj.username }}{% else %}Ku dar User Cusub{% endif %} — HospitalCare{% endblock %}
+
+{% block users_content %}
+<div style="max-width: 750px; margin: 0 auto;">
+    <div class="users-card">
+        <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+            <div>
+                <h4 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                    {% if is_edit %}
+                    Wax ka bedel Akoonka: <span style="color: #1e3a8a;">@{{ user_obj.username }}</span>
+                    {% else %}
+                    Abuur User Cusub (Create New System User)
+                    {% endif %}
+                </h4>
+                <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
+                    {% if is_edit %}
+                    Bedel doorka, xogta shakhsiga ah ama xaaladda shaqo ee qofkan.
+                    {% else %}
+                    Geli macluumaadka shaqaalaha cusub oo u xilsaar doorka uu ka qabanayo isbitaalka.
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{% url 'user_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1" style="font-size: 13px; border-radius: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+                Dib ugu noqo
+            </a>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="border-radius: 8px; font-size: 13.5px;">
+                {% for err in form.non_field_errors %}
+                <div>{{ err }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="row g-3">
+                {% if not is_edit %}
+                <!-- Username -->
+                <div class="col-md-12">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                    <small class="text-muted" style="font-size: 12px;">Magacan waxaa loo isticmaali doonaa galitaanka (login).</small>
+                </div>
+                {% endif %}
+
+                <!-- First & Last Name -->
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.first_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.last_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-12">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Role Selection -->
+                <div class="col-md-12">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.role.label }}</label>
+                    {{ form.role }}
+                    {% if form.role.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.role.errors.0 }}</div>
+                    {% endif %}
+                    <div class="p-3 mt-2" style="background: #f1f5f9; border-radius: 8px; font-size: 12.5px; color: #475569;">
+                        <strong>Ogow:</strong> Doorka aad doorato wuxuu si toos ah u xaddidayaa waxa qofkan ka arki karo nidaamka. Admin-ku wuxuu xaq u leeyahay inuu wax walba arko oo maamulo.
+                    </div>
+                </div>
+
+                {% if not is_edit %}
+                <!-- Passwords -->
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.password.label }}</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #334155;">{{ form.confirm_password.label }}</label>
+                    {{ form.confirm_password }}
+                    {% if form.confirm_password.errors %}
+                    <div class="text-danger mt-1" style="font-size: 12px;">{{ form.confirm_password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Active Status -->
+                <div class="col-md-12 mt-3">
+                    <div class="form-check form-switch p-0 d-flex align-items-center gap-2">
+                        {{ form.is_active }}
+                        <label class="form-check-label mb-0" for="{{ form.is_active.id_for_label }}" style="font-size: 13.5px; font-weight: 600; color: #1e293b; cursor: pointer;">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                    <small class="text-muted d-block mt-1" style="font-size: 12px;">Haddii calaamadda laga saaro, user-kani ma awoodi doono inuu galo nidaamka.</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'user_list' %}" class="btn btn-outline-secondary" style="border-radius: 8px; font-size: 13.5px;">Kansal Garee</a>
+                <button type="submit" class="btn" style="background: #1e3a8a; color: #ffffff; border-radius: 8px; font-size: 13.5px; font-weight: 600; padding: 9px 24px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">save</span>
+                    {% if is_edit %}Keydi Isbedelka{% else %}Abuur User-ka{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

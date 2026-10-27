@@ -1,0 +1,183 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Baaritaannada Shaybaarka (Lab Requests) — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Baaritaannada</span>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Baaritaannada Shaybaarka (Lab Requests)</h3>
+        <p class="text-muted small mb-0">Liiska dhammaan dalabaadka baaritaanka ee bukaannada isbitaalka loo diiwaangeliyey.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab_request_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Dalab Baaritaan Cusub
+        </a>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="hms-card">
+    <!-- Filter Tabs & Search Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 mb-3 border-bottom">
+        <!-- Status Filter Tabs -->
+        <div class="d-flex flex-wrap gap-1">
+            <a href="?status=all{% if priority_filter != 'all' %}&priority={{ priority_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'all' or not status_filter %}active{% endif %}">
+                Dhammaan ({{ counts.all }})
+            </a>
+            <a href="?status=Pending{% if priority_filter != 'all' %}&priority={{ priority_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Pending' %}active{% endif %}">
+                Sugaya ({{ counts.pending }})
+            </a>
+            <a href="?status=Sample Collected{% if priority_filter != 'all' %}&priority={{ priority_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Sample Collected' %}active{% endif %}">
+                Muunada La Qaaday ({{ counts.sample_collected }})
+            </a>
+            <a href="?status=In Progress{% if priority_filter != 'all' %}&priority={{ priority_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'In Progress' %}active{% endif %}">
+                Socda ({{ counts.in_progress }})
+            </a>
+            <a href="?status=Completed{% if priority_filter != 'all' %}&priority={{ priority_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if status_filter == 'Completed' %}active{% endif %}">
+                Dhamaaday ({{ counts.completed }})
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <form method="get" class="d-flex gap-2">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            <div class="input-group" style="width: 280px;">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Raadi bukaan, ID ama tel...">
+            </div>
+            {% if search_query %}
+                <a href="?status={{ status_filter }}" class="btn btn-outline-secondary d-flex align-items-center">
+                    <span class="material-symbols-outlined fs-6">close</span>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Bukaanka</th>
+                    <th>Dhakhtarka</th>
+                    <th>Baaritaannada</th>
+                    <th>Heerka</th>
+                    <th>Xaaladda</th>
+                    <th>Qiimaha</th>
+                    <th class="text-end">Ficilka</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td>
+                        <a href="{% url 'lab_request_detail' req.pk %}" class="fw-bold text-primary">
+                            {{ req.order_number }}
+                        </a>
+                        <div class="text-muted" style="font-size: 11px;">{{ req.created_at|date:"M d, Y h:i A" }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark">{{ req.patient.name }}</div>
+                        <div class="text-muted small">{{ req.patient.age }} jir • {{ req.patient.gender }} • {{ req.patient.phone }}</div>
+                    </td>
+                    <td>
+                        {% if req.doctor %}
+                            <div class="fw-medium text-dark small">{{ req.doctor }}</div>
+                        {% else %}
+                            <span class="text-muted small">Toos (Walk-in)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1" style="max-width: 220px;">
+                            {% for item in req.items.all %}
+                                <span class="badge bg-light text-dark border" style="font-size: 11px;" title="{{ item.test.name }}">
+                                    {{ item.test.code }}
+                                </span>
+                            {% empty %}
+                                <span class="text-muted small">Ma jiro</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if req.priority == 'STAT' %}
+                            <span class="badge-status badge-stat">STAT / Degdeg</span>
+                        {% elif req.priority == 'Urgent' %}
+                            <span class="badge-status badge-urgent">Urgent</span>
+                        {% else %}
+                            <span class="badge-status badge-routine">Routine</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == 'Pending' %}
+                            <span class="badge-status badge-pending">Sugaya</span>
+                        {% elif req.status == 'Sample Collected' %}
+                            <span class="badge-status badge-collected">Muunada la helay</span>
+                        {% elif req.status == 'In Progress' %}
+                            <span class="badge-status badge-progress">Wuu socdaa</span>
+                        {% elif req.status == 'Completed' %}
+                            <span class="badge-status badge-completed">Dhamaaday</span>
+                        {% else %}
+                            <span class="badge-status badge-cancelled">{{ req.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${{ req.total_amount }}</div>
+                        {% if req.payment_status == 'Paid' %}
+                            <span class="badge bg-success-subtle text-success" style="font-size: 10px;">Bixiyay</span>
+                        {% elif req.payment_status == 'Waived' %}
+                            <span class="badge bg-info-subtle text-info" style="font-size: 10px;">Bilaash</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning" style="font-size: 10px;">Lama bixin</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'lab_request_detail' req.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Faahfaahin">
+                                <span class="material-symbols-outlined fs-6 text-primary">visibility</span>
+                            </a>
+                            
+                            {% if req.status == 'Pending' %}
+                            <a href="{% url 'lab_sample_collect' req.pk %}" class="btn btn-sm btn-info text-white p-1 px-2" title="Xaqiiji Muunada">
+                                <span class="material-symbols-outlined fs-6">bloodtype</span>
+                            </a>
+                            {% endif %}
+
+                            {% if req.status != 'Completed' %}
+                            <a href="{% url 'lab_result_entry' req.pk %}" class="btn btn-sm btn-warning text-dark p-1 px-2" title="Geli Natiijada">
+                                <span class="material-symbols-outlined fs-6">edit_note</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'lab_report_view' req.pk %}" class="btn btn-sm btn-success p-1 px-2" title="Daabac Warbixinta">
+                                <span class="material-symbols-outlined fs-6">print</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">search_off</span>
+                        Wax baaritaan ah oo waafaqaya sharuudaha lama helin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

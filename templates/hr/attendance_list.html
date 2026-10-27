@@ -1,0 +1,274 @@
+﻿{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="hms-breadcrumb mb-1">
+                <a href="{% url 'dashboard' %}">
+                    <span class="material-symbols-outlined fs-6">home</span> Dashboard
+                </a>
+                <span>/</span>
+                <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+                <span>/</span>
+                <span class="active">Xaadirka Maalinlaha</span>
+            </div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">Xaadirka Maalinlaha ah (Daily Attendance)</h2>
+            <p class="text-muted small mb-0">Diiwaanka imaanshaha iyo shaqada shaqaalaha ee taariikhda: <strong>{{ selected_date|date:"l, d F Y" }}</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3">
+                <span class="material-symbols-outlined fs-5">groups</span> Liiska Shaqaalaha
+            </a>
+            <a href="{% url 'hr_dashboard' %}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3">
+                <span class="material-symbols-outlined fs-5">dashboard</span> HR Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Selector Bar -->
+    <div class="hms-card mb-4 p-3">
+        <form method="GET" action="{% url 'attendance_list' %}" class="row g-3 align-items-center">
+            <div class="col-12 col-md-5 d-flex align-items-center gap-2">
+                <label class="form-label mb-0 fw-semibold text-slate-700 small text-nowrap">
+                    <span class="material-symbols-outlined align-middle me-1 text-primary">calendar_month</span>
+                    Dooro Taariikhda:
+                </label>
+                <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="form-control" onchange="this.form.submit()">
+            </div>
+            <div class="col-12 col-md-7 d-flex justify-content-md-end gap-2">
+                <a href="{% url 'attendance_list' %}" class="btn btn-light border btn-sm px-3 rounded-pill">
+                    Maanta (Today)
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Attendance Stats for Selected Date -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <span class="material-symbols-outlined fs-2">groups</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Shaqaalaha Guud</div>
+                    <div class="hr-kpi-val">{{ total_staff }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <span class="material-symbols-outlined fs-2">check_circle</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Jooga (Present)</div>
+                    <div class="hr-kpi-val text-success">{{ present_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #fefce8; color: #d97706;">
+                    <span class="material-symbols-outlined fs-2">schedule</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Daahay (Late)</div>
+                    <div class="hr-kpi-val text-warning">{{ late_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #fef2f2; color: #dc2626;">
+                    <span class="material-symbols-outlined fs-2">cancel</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Maqan (Absent)</div>
+                    <div class="hr-kpi-val text-danger">{{ absent_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #fdf4ff; color: #9333ea;">
+                    <span class="material-symbols-outlined fs-2">flight_takeoff</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">Fasax Ku Maqan</div>
+                    <div class="hr-kpi-val" style="color: #9333ea;">{{ on_leave_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="hr-kpi-card">
+                <div class="hr-kpi-icon" style="background: #f1f5f9; color: #64748b;">
+                    <span class="material-symbols-outlined fs-2">help</span>
+                </div>
+                <div>
+                    <div class="hr-kpi-label">La Gelin (Unmarked)</div>
+                    <div class="hr-kpi-val text-muted">{{ unmarked_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table Card -->
+    <div class="hms-card">
+        <div class="hms-card-header">
+            <div>
+                <h5 class="fw-bold text-slate-800 mb-1">
+                    Liiska Shaqaalaha & Xaadirka ({{ selected_date|date:"d M Y" }})
+                </h5>
+                <p class="text-muted small mb-0">Riix 'Qabo Xaadirka' shaqaale kasta si aad u bedesho ama u geliso xaaladdiisa.</p>
+            </div>
+        </div>
+
+        {% if staff_roster %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Shaqaalaha</th>
+                        <th>ID-ga</th>
+                        <th>Qaybta & Xilka</th>
+                        <th>Waqtiga (Shift)</th>
+                        <th>Xaaladda Maanta</th>
+                        <th>Soo Gelitaanka</th>
+                        <th>Baxitaanka</th>
+                        <th>Faallo</th>
+                        <th class="text-end">Qabasho</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in staff_roster %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="staff-avatar">
+                                    {{ item.staff.user.first_name|first|upper }}{{ item.staff.user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <a href="{% url 'staff_detail' item.staff.pk %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                        {{ item.staff.user.get_full_name }}
+                                    </a>
+                                    <div class="small text-muted">{{ item.staff.phone|default:"" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-primary border font-monospace px-2 py-1">
+                                {{ item.staff.employee_id|default:"N/A" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ item.staff.designation }}</div>
+                            <div class="small text-muted">{{ item.staff.department }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-secondary border px-2 py-1">
+                                {{ item.staff.shift }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.status == 'Present' %}
+                            <span class="badge-status badge-present">Jooga (Present)</span>
+                            {% elif item.status == 'Late' %}
+                            <span class="badge-status badge-late">Daahay (Late)</span>
+                            {% elif item.status == 'Absent' %}
+                            <span class="badge-status badge-absent">Maqan (Absent)</span>
+                            {% elif item.status == 'Half Day' %}
+                            <span class="badge-status badge-halfday">Nus Maalin</span>
+                            {% elif item.status == 'On Leave' %}
+                            <span class="badge-status badge-leave">Fasax (Leave)</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill small">
+                                La Gelin (Unmarked)
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="small font-monospace">{{ item.record.check_in|time:"H:i"|default:"-" }}</span>
+                        </td>
+                        <td>
+                            <span class="small font-monospace">{{ item.record.check_out|time:"H:i"|default:"-" }}</span>
+                        </td>
+                        <td>
+                            <span class="small text-muted">{{ item.record.notes|default:"-" }}</span>
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary px-3 py-1 rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#markModal{{ item.staff.pk }}">
+                                Qabo Xaadirka
+                            </button>
+
+                            <!-- Inline Modal for this staff -->
+                            <div class="modal fade" id="markModal{{ item.staff.pk }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog text-start">
+                                    <form method="POST" action="{% url 'attendance_mark' %}" class="modal-content rounded-4 border-0 shadow">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="staff_id" value="{{ item.staff.pk }}">
+                                        <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <div class="modal-header border-bottom">
+                                            <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                                                <span class="material-symbols-outlined text-primary">fact_check</span>
+                                                Xaadirka: {{ item.staff.user.get_full_name }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4">
+                                            <div class="p-2 mb-3 bg-light rounded border text-muted small">
+                                                Taariikhda: <strong>{{ selected_date|date:"l, d F Y" }}</strong> &bull; Qaybta: <strong>{{ item.staff.department }}</strong>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Xaaladda Xaadirka *</label>
+                                                <select name="status" class="form-select form-control" required>
+                                                    <option value="Present" {% if item.status == 'Present' %}selected{% endif %}>Jooga (Present)</option>
+                                                    <option value="Late" {% if item.status == 'Late' %}selected{% endif %}>Soo Daahay (Late)</option>
+                                                    <option value="Absent" {% if item.status == 'Absent' %}selected{% endif %}>Maqan (Absent)</option>
+                                                    <option value="Half Day" {% if item.status == 'Half Day' %}selected{% endif %}>Nus Maalin (Half Day)</option>
+                                                    <option value="On Leave" {% if item.status == 'On Leave' %}selected{% endif %}>Fasax Ku Maqan (On Leave)</option>
+                                                </select>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <label class="form-label small fw-semibold">Waqtiga Soo Gelitaanka</label>
+                                                    <input type="time" name="check_in" class="form-control" value="{% if item.record and item.record.check_in %}{{ item.record.check_in|time:'H:i' }}{% else %}08:00{% endif %}">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small fw-semibold">Waqtiga Baxitaanka</label>
+                                                    <input type="time" name="check_out" class="form-control" value="{% if item.record and item.record.check_out %}{{ item.record.check_out|time:'H:i' }}{% else %}16:00{% endif %}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-0">
+                                                <label class="form-label small fw-semibold">Faallada / Sababta</label>
+                                                <input type="text" name="notes" class="form-control" value="{{ item.record.notes|default:'' }}" placeholder="e.g. Daahay sababo gaadiid darteed...">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Ka Noqo</button>
+                                            <button type="submit" class="btn btn-primary fw-semibold px-4" style="background: #1e3a8a; border-color: #1e3a8a;">
+                                                Keydi Xaadirka
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <span class="material-symbols-outlined fs-1 text-muted opacity-50">groups</span>
+            <p class="mb-0 mt-2">Ma jiraan shaqaale firfircoon oo nidaamka ku jira.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

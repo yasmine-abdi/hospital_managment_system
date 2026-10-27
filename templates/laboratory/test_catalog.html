@@ -1,0 +1,131 @@
+﻿{% extends 'laboratory/base.html' %}
+{% load static %}
+
+{% block title %}Liiska Baaritaannada (Lab Test Catalog) — MediCare HMS{% endblock %}
+
+{% block lab_content %}
+<div class="hms-breadcrumb">
+    <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined fs-6">home</span> Dashboard</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <a href="{% url 'lab_dashboard' %}"><span class="material-symbols-outlined fs-6">biotech</span> Laboratory</a>
+    <span class="material-symbols-outlined fs-6 text-muted">chevron_right</span>
+    <span class="active">Liiska Baaritaannada</span>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Liiska & Qiimaha Baaritaannada (Test Catalog)</h3>
+        <p class="text-muted small mb-0">Maamul dhammaan noocyada baaritaannada shaybaarka, qiimaha, nooca muunada iyo waqtiga ay qaadanayaan.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab_category_create' %}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined fs-5">category</span>
+            Qayb Cusub
+        </a>
+        <a href="{% url 'lab_test_create' %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm px-3" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <span class="material-symbols-outlined fs-5">add_circle</span>
+            Ku dar Baaritaan Cusub
+        </a>
+    </div>
+</div>
+
+<div class="hms-card">
+    <!-- Filter Tabs & Search -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 mb-3 border-bottom">
+        <div class="d-flex flex-wrap gap-1">
+            <a href="{% url 'lab_test_catalog' %}{% if search_query %}?q={{ search_query }}{% endif %}" class="filter-tab-btn {% if not selected_category %}active{% endif %}">
+                Dhammaan ({{ tests.count }})
+            </a>
+            {% for cat in categories %}
+            <a href="?category={{ cat.id }}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab-btn {% if selected_category|stringformat:'s' == cat.id|stringformat:'s' %}active{% endif %}">
+                {{ cat.name }} ({{ cat.test_count }})
+            </a>
+            {% endfor %}
+        </div>
+
+        <form method="get" class="d-flex gap-2">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            <div class="input-group" style="width: 260px;">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <span class="material-symbols-outlined fs-6">search</span>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Raadi baaritaan ama code...">
+            </div>
+            {% if search_query %}
+                <a href="{% url 'lab_test_catalog' %}" class="btn btn-outline-secondary d-flex align-items-center">
+                    <span class="material-symbols-outlined fs-6">close</span>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Koodhka</th>
+                    <th>Magaca Baaritaanka</th>
+                    <th>Qaybta</th>
+                    <th>Nooca Muunada</th>
+                    <th>Waqtiga (TAT)</th>
+                    <th>Qiyaasaha</th>
+                    <th>Qiimaha</th>
+                    <th>Xaaladda</th>
+                    <th class="text-end">Ficilka</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                <tr>
+                    <td>
+                        <span class="badge bg-light text-primary border fw-bold" style="font-size: 11.5px;">{{ test.code }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ test.name }}</div>
+                        {% if test.description %}
+                            <div class="text-muted small" style="font-size: 11px;">{{ test.description|truncatechars:45 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-secondary">{{ test.category.name }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ test.sample_type }}</span>
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ test.turnaround_time }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-info-subtle text-info">{{ test.parameters.count }} parameters</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold text-dark fs-6">${{ test.price }}</span>
+                    </td>
+                    <td>
+                        {% if test.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'lab_test_update' test.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Wax ka beddel">
+                            <span class="material-symbols-outlined fs-6 text-primary">edit</span>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 text-muted d-block mb-2">science</span>
+                        Wax baaritaanno ah lama helin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

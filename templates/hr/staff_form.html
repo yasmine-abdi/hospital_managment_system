@@ -1,0 +1,186 @@
+﻿{% extends 'hr/base.html' %}
+
+{% block hr_content %}
+<div class="page-content">
+    <!-- Breadcrumb -->
+    <div class="hms-breadcrumb mb-3">
+        <a href="{% url 'dashboard' %}">
+            <span class="material-symbols-outlined fs-6">home</span> Dashboard
+        </a>
+        <span>/</span>
+        <a href="{% url 'hr_dashboard' %}">HR & Staff</a>
+        <span>/</span>
+        <a href="{% url 'staff_list' %}">Shaqaalaha</a>
+        <span>/</span>
+        <span class="active">{{ title }}</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-slate-900 mb-0" style="font-family: 'DM Sans', sans-serif;">{{ title }}</h2>
+            <p class="text-muted small mb-0">Fadlan buuxi macluumaadka shaqaalaha si sax ah.</p>
+        </div>
+        <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3">
+            <span class="material-symbols-outlined fs-5">arrow_back</span> Dib ugu noqo
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <form method="POST" class="hms-card">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger rounded-3 mb-4">
+                    <div class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">error</span>
+                        Khaladaadka Foomka:
+                    </div>
+                    <ul class="mb-0 small ps-3">
+                        {% for field, errors in form.errors.items %}
+                            {% for err in errors %}
+                            <li><strong>{{ field|capfirst }}:</strong> {{ err }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Section 1: Macluumaadka Shakhsiga ah -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">person</span>
+                        1. Macluumaadka Shakhsiga (Personal Info)
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.gender.label }}</label>
+                            {{ form.gender }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.email.label }}</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.address.label }}</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Gelitaanka Nidaamka (Credentials) -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">lock</span>
+                        2. Koontada & Gelitaanka (Account Credentials)
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            <div class="form-text small">Haddii aad faaruq ka tagto, si toos ah ayaa loogu abuurayaa username.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.password.label }}</label>
+                            {{ form.password }}
+                            <div class="form-text small">Furaha sirta ah (default: <code>Hospital@2026</code> haddii la dhaafo).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Shaqada & Waaxda (Job & Professional Info) -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">work</span>
+                        3. Shaqada & Xilka (Job & Department)
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.employee_id.label }}</label>
+                            {{ form.employee_id }}
+                            <div class="form-text small">Tusaale: EMP-2026-0001 (ama faaruq u dhaaf si toos ah loo abuuro)</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.department.label }}</label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.designation.label }}</label>
+                            {{ form.designation }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.qualification.label }}</label>
+                            {{ form.qualification }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.experience_years.label }}</label>
+                            {{ form.experience_years }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.hire_date.label }}</label>
+                            {{ form.hire_date }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.shift.label }}</label>
+                            {{ form.shift }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.status.label }}</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Mushaharka & Xaaladaha Degdegga ah -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">payments</span>
+                        4. Mushaharka & Xiriirka Degdegga ah
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.salary.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-success fw-bold">$</span>
+                                {{ form.salary }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.emergency_contact.label }}</label>
+                            {{ form.emergency_contact }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-slate-700">{{ form.notes.label }}</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
+                    <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary px-4 py-2 rounded-3">Ka Noqo (Cancel)</a>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" style="background: #1e3a8a; border-color: #1e3a8a;">
+                        <span class="material-symbols-outlined align-middle me-1">save</span>
+                        Keydi Shaqaalaha (Save Staff)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
